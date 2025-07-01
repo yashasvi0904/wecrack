@@ -1,15 +1,36 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [showPassword, setShowPassword] = useState(false);
+  const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (form.name.length < 2) newErrors.name = 'Name must be at least 2 characters';
+    if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = 'Invalid email format';
+    if (form.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    return newErrors;
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Registration data:', form);
+    const newErrors = validateForm();
+    setErrors(newErrors);
+    if (Object.keys(newErrors).length === 0) {
+      console.log('Registration data:', form);
+      alert('Registration successful!');
+      navigate('/login');
+    }
   };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) {
+      setErrors({ ...errors, [e.target.name]: '' });
+    }
   };
 
   return (
@@ -18,27 +39,28 @@ export default function RegisterPage() {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      background: '#F2F2F2',
       fontFamily: 'Arial, sans-serif'
     }}>
       <div style={{
-        background: 'white',
+        background: '#EAE4D5',
         padding: '2rem',
         borderRadius: '10px',
         boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
         width: '100%',
-        maxWidth: '400px'
+        maxWidth: '400px',
+        border: '2px solid #B6B09F'
       }}>
         <h2 style={{
           textAlign: 'center',
           marginBottom: '1.5rem',
-          color: '#333',
+          color: '#000000',
           fontSize: '1.8rem'
         }}>
           Create Account
         </h2>
         
-        <div onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1rem' }}>
             <input
               type="text"
@@ -50,15 +72,18 @@ export default function RegisterPage() {
               style={{
                 width: '100%',
                 padding: '0.75rem',
-                border: '2px solid #e1e5e9',
+                border: `2px solid ${errors.name ? '#dc3545' : '#B6B09F'}`,
                 borderRadius: '5px',
                 fontSize: '1rem',
                 transition: 'border-color 0.3s',
-                outline: 'none'
+                outline: 'none',
+                background: '#F2F2F2',
+                color: '#000000'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
+              onFocus={(e) => e.target.style.borderColor = errors.name ? '#dc3545' : '#000000'}
+              onBlur={(e) => e.target.style.borderColor = errors.name ? '#dc3545' : '#B6B09F'}
             />
+            {errors.name && <div style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.name}</div>}
           </div>
           
           <div style={{ marginBottom: '1rem' }}>
@@ -72,20 +97,23 @@ export default function RegisterPage() {
               style={{
                 width: '100%',
                 padding: '0.75rem',
-                border: '2px solid #e1e5e9',
+                border: `2px solid ${errors.email ? '#dc3545' : '#B6B09F'}`,
                 borderRadius: '5px',
                 fontSize: '1rem',
                 transition: 'border-color 0.3s',
-                outline: 'none'
+                outline: 'none',
+                background: '#F2F2F2',
+                color: '#000000'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
+              onFocus={(e) => e.target.style.borderColor = errors.email ? '#dc3545' : '#000000'}
+              onBlur={(e) => e.target.style.borderColor = errors.email ? '#dc3545' : '#B6B09F'}
             />
+            {errors.email && <div style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.email}</div>}
           </div>
           
-          <div style={{ marginBottom: '1.5rem' }}>
+          <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               name="password"
               placeholder="Password"
               value={form.password}
@@ -94,38 +122,67 @@ export default function RegisterPage() {
               style={{
                 width: '100%',
                 padding: '0.75rem',
-                border: '2px solid #e1e5e9',
+                paddingRight: '2.5rem',
+                border: `2px solid ${errors.password ? '#dc3545' : '#B6B09F'}`,
                 borderRadius: '5px',
                 fontSize: '1rem',
                 transition: 'border-color 0.3s',
-                outline: 'none'
+                outline: 'none',
+                background: '#F2F2F2',
+                color: '#000000'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e1e5e9'}
+              onFocus={(e) => e.target.style.borderColor = errors.password ? '#dc3545' : '#000000'}
+              onBlur={(e) => e.target.style.borderColor = errors.password ? '#dc3545' : '#B6B09F'}
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '0.5rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '0.8rem',
+                color: '#000000'
+              }}
+            >
+              {showPassword ? '👁️' : '👁️‍🗨️'}
+            </button>
+            {errors.password && <div style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.password}</div>}
           </div>
           
           <button
-            onClick={handleSubmit}
+            type="submit"
             style={{
               width: '100%',
               padding: '0.75rem',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
+              background: '#000000',
+              color: '#F2F2F2',
               border: 'none',
               borderRadius: '5px',
               fontSize: '1rem',
               fontWeight: 'bold',
               cursor: 'pointer',
-              transition: 'transform 0.2s',
+              transition: 'all 0.2s',
               outline: 'none'
             }}
-            onMouseOver={(e) => e.target.style.transform = 'translateY(-2px)'}
-            onMouseOut={(e) => e.target.style.transform = 'translateY(0)'}
+            onMouseOver={(e) => {
+              e.target.style.background = '#B6B09F';
+              e.target.style.color = '#000000';
+              e.target.style.transform = 'translateY(-2px)';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.background = '#000000';
+              e.target.style.color = '#F2F2F2';
+              e.target.style.transform = 'translateY(0)';
+            }}
           >
             Register
           </button>
-        </div>
+        </form>
       </div>
     </div>
   );
