@@ -1,13 +1,21 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const allowedOrigins = (process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map(origin => origin.trim())
+  .filter(Boolean);
 const mongoose = require('mongoose');
-require('dotenv').config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json());
 
-const authRoutes = require('./routes/authRoutes');
+const authRoutes = require('./routes/Routes');
 app.use('/', authRoutes);
 
 const connectDB = require('./config/db');

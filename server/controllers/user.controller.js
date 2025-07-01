@@ -3,15 +3,27 @@ const User = require("../models/user.Model");
 
 const registerUser = async(req,res) => {
     try {
-        const { Email, Password } = req.body;
-        const user = await User.findOne({ Email });
+        console.log("Received registration request with body:", req.body);
+        const { name , email, password } = req.body;
+
+        const user = await User.findOne({ email });
         if (user) {
+            console.log("User already exists with email:", email);
             return res.status(400).json({ message: "User already exists" });
         }
-        const newUser = new User({ Email, Password });
+        if (user === undefined) {
+            console.log("User.findOne did not throw but returned undefined for email:", email);
+        }
+
+        const newUser = new User({ name ,email, password });
+        console.log("New user object created:", newUser);
+
         await newUser.save();
+        console.log("New user saved successfully.");
+
         return res.status(201).json({ message: "User registered successfully" });
     } catch (error) {
+        console.error("Error during user registration:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }
@@ -38,7 +50,7 @@ const loginUser = async (req, res) => {
       .status(200)
       .json({ message: "Login successful.", role: user.role, id : user._id });
   }catch (error) {
-    console.error(error);
+    console.error("Error during login:", error);
     res.status(500).json({ message: "Login failed." });
   }
 
@@ -56,6 +68,7 @@ const logoutUser = async(req,res) => {
         
         return res.status(200).json({ message: "User logged out successfully" });
     } catch (error) {
+        console.error("Error during logout:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 }

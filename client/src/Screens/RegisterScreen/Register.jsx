@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function RegisterPage() {
   const [form, setForm] = useState({ name: '', email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [successMessage, setSuccessMessage] = useState('');
   const navigate = useNavigate();
 
   const validateForm = () => {
@@ -20,11 +22,23 @@ export default function RegisterPage() {
     const newErrors = validateForm();
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
-      console.log('Registration data:', form);
-      alert('Registration successful!');
-      navigate('/login');
-    }
-  };
+      axios.post(process.env.REACT_APP_REGISTER_USER, {
+        name: form.name,
+        email: form.email,
+        password: form.password
+      }, { withCredentials: true })
+        .then((res) => {
+          setSuccessMessage(res.data.message || 'Registered successfully!');
+          setForm({ name: '', email: '', password: '' });
+          setTimeout(() => navigate('/login'), 1500); // Redirect after delay
+        })
+        .catch((err) => {
+          console.error('Registration error:', err);
+          setSuccessMessage('Registration failed. Please try again.');
+        });
+    };
+  }
+  
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -59,7 +73,19 @@ export default function RegisterPage() {
         }}>
           Create Account
         </h2>
-        
+        {successMessage && (
+          <div style={{
+            marginBottom: '1rem',
+            padding: '0.75rem',
+            borderRadius: '5px',
+            backgroundColor: '#d4edda',
+            color: '#155724',
+            border: '1px solid #c3e6cb',
+            textAlign: 'center'
+          }}>
+            {successMessage}
+          </div>
+        )}
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1rem' }}>
             <input
@@ -186,4 +212,4 @@ export default function RegisterPage() {
       </div>
     </div>
   );
-}
+};
