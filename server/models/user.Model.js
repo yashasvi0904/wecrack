@@ -10,7 +10,14 @@ const userSchema = new mongoose.Schema({
   },
   },
   refreshToken:{type: String},
-  isGoogleUser: { type: Boolean, default: false }
+  isGoogleUser: { type: Boolean, default: false },
+  tasks: [
+  {
+    subject: { type: String, required: true },
+    title: { type: String, required: true },
+    completed: { type: Boolean, default: false }
+  }
+]
   
 });
 
