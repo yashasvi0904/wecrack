@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const allowedOrigins = (process.env.CORS_ORIGINS || "")
   .split(",")
   .map(origin => origin.trim())
@@ -8,6 +9,7 @@ const allowedOrigins = (process.env.CORS_ORIGINS || "")
 const mongoose = require('mongoose');
 
 const app = express();
+app.use(cookieParser());
 app.use(cors({
   origin: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'],

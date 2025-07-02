@@ -6,7 +6,9 @@ const {verifyToken} = require('../middleware/auth');
 
 router.post('/register', registerUser);
 router.post('/login', loginUser);
-router.post("/logout", verifyToken, logoutUser);
+// Protected route to log out the user
+router.get("/logout", verifyToken, logoutUser);
+// Protected route to get user details
 router.get('/userdetails', verifyToken, userdetails);
 
 
