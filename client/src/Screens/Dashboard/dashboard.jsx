@@ -172,7 +172,7 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
         
         {/* Welcome Header */}
         <div style={cardStyle}>
-          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome back,{user1}!</h1>
+          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome yash</h1>
           <p style={{ color: '#718096', margin: 0 }}>Let's crack GATE with focus and consistency!</p>
         </div>
         
