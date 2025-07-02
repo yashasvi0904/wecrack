@@ -73,7 +73,19 @@ const userdetails = async () => {
   useEffect(() => {
     userdetails();
     handleMarks();
+    fetchTasks();
+    
   }, []);
+const fetchTasks = async () => {
+  try {
+    const response = await axios.get("http://localhost:2000/tasks", {
+      withCredentials: true
+    });
+    setTasks(response.data);
+  } catch (err) {
+    console.error("Error fetching tasks:", err);
+  }
+};
 const handleAddTask = async () => {
   const subject = prompt("Enter subject (e.g. DSA, OS, DBMS):");
   const title = prompt("Enter task title:");
