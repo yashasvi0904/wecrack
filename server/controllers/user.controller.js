@@ -159,6 +159,39 @@ const getTasks = async (req, res) => {
   }
 };
 
+const topicstracker = async (req, res) => {
+  try {
+    const { completedTopics } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // ✅ Replace with updated list (deduplicated and trimmed)
+    user.topics = completedTopics
+      .map(t => t.trim())
+      .filter((t, i, arr) => t !== '' && arr.indexOf(t) === i); // remove duplicates
+
+    await user.save();
+    return res.status(200).json({ topics: user.topics });
+  } catch (error) {
+    console.error("Error saving topics:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+const getTopics = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    return res.status(200).json({ topics: user.topics });
+  } catch (error) {
+    console.error("Error fetching topics:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 module.exports = {
     registerUser,
@@ -168,6 +201,9 @@ module.exports = {
     mockscore,
     getmockscore,
     addTask,
-    getTasks
+    getTasks,
+    topicstracker,
+    getTopics,
+    DeleteTask
 
 }

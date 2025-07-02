@@ -21,6 +21,8 @@ const [user1 , setUser] = useState('');
   const [mockTestPDF, setMockTestPDF] = useState('');
   const [showMockTestModal, setShowMockTestModal] = useState(false);
   const [mockTestMarks, setMockTestMarks] = useState([]);
+const [topicList, setTopicList] = useState([]);
+const [newTopic, setNewTopic] = useState('');
   
   
   
@@ -158,13 +160,95 @@ const toggleTask = async (taskId) => {
       console.error("Error fetching marks:", err);
     }
   };
+
+  
+
+  // Handles GATE branch change, fetches PDF, converts to HTML (mock), and sends to backend
+  const handleBranchChange = async (e) => {
+    const selected = e.target.value;
+    setBranch(selected);
+
+    const branchCode = selected.split(' - ')[0];
+    const pdfPath = `/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, '');
+    
+    try {
+      const response = await fetch(pdfPath);
+      const blob = await response.blob();
+
+      // Convert PDF to base64 string (mock conversion to HTML)
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64data = reader.result;
+
+        // Send to backend (you can later parse this to real HTML in the backend)
+        await axios.post('http://localhost:2000/save-syllabus', {
+          branch: branchCode,
+          syllabusHtml: base64data // ideally convert to HTML before sending
+        }, { withCredentials: true });
+      };
+      reader.readAsDataURL(blob);
+    } catch (err) {
+      console.error("Error processing syllabus PDF:", err);
+    }
+  };
   
   
 const cardStyle = { background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '16px' };
 const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' };
   
   // Toggle the completed status of a task and update backend
+  // Toggle the completed status of a task and update backend
+useEffect(() => {
+  const fetchTopics = async () => {
+    try {
+      const res = await axios.get('http://localhost:2000/get-syllabus-progress', {
+        withCredentials: true
+      });
+      setTopicList(res.data.topics || []);
+      console.log(res.data.topics);
+      
+    } catch (err) {
+      console.error("Error fetching topics:", err);
+    }
+  };
+
+
+  fetchTopics();
+}, []);
   
+  const handleAddTopic = async () => {
+  if (!newTopic.trim()) return;
+
+  const updatedTopics = [...topicList, newTopic.trim()];
+  setTopicList(updatedTopics);
+  setNewTopic('');
+
+  try {
+    await axios.post('http://localhost:2000/update-syllabus-progress', {
+      branch: branch.split(' - ')[0],
+      completedTopics: updatedTopics
+    }, { withCredentials: true });
+
+    alert('Topic added and saved!');
+  } catch (err) {
+    console.error("Error updating topics:", err);
+    alert("Failed to update.");
+  }
+  };
+  const handleDeleteTopic = async (topicToDelete) => {
+  const updated = topicList.filter(topic => topic !== topicToDelete);
+  setTopicList(updated);
+
+  try {
+    await axios.post("http://localhost:2000/update-syllabus-progress", {
+      completedTopics: updated,
+      branch: branch.split(' - ')[0],
+    }, { withCredentials: true });
+  } catch (err) {
+    console.error("Failed to sync deleted topic:", err);
+  }
+};
+
 
   return (
     <div style={{ background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)', minHeight: '100vh', padding: '20px' }}>
@@ -172,7 +256,7 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
         
         {/* Welcome Header */}
         <div style={cardStyle}>
-          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome yash</h1>
+          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome Back {user1 }!</h1>
           <p style={{ color: '#718096', margin: 0 }}>Let's crack GATE with focus and consistency!</p>
         </div>
         
@@ -233,7 +317,7 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
             <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>📚 Syllabus</h3>
             <select 
               value={branch} 
-              onChange={(e) => setBranch(e.target.value)}
+              onChange={handleBranchChange}
               style={{ padding: '8px', marginBottom: '12px', borderRadius: '4px', border: '1px solid #e2e8f0', width: '100%' }}
             >
               {branches.map(b => <option key={b} value={b}>{b}</option>)}
@@ -248,6 +332,7 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
             >
               <BookOpen size={16} style={{ marginRight: '8px' }} /> View Syllabus
             </button>
+            {/* TODO: Add checkbox and notes UI for each syllabus topic from backend */}
           </div>
           
           {/* Performance Analytics */}
@@ -373,35 +458,51 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
           
           {/* User Preferences */}
           <div style={cardStyle}>
-            <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>⚙️ Preferences</h3>
-            <div style={{ fontSize: '14px' }}>
-              <div style={{ marginBottom: '8px' }}>
-                <label>🌐 GATE Branch: </label>
-                {/* TODO: Save selected branch to DB when user chooses one */}
-                <select 
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)} // TODO: Save this to DB
-                  style={{ padding: '4px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                >
-                  {branches.map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-              </div>
-              <div style={{ marginBottom: '8px' }}>
-                <label>📆 Daily Study Hours: </label>
-                <select style={{ padding: '4px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                  <option>4-6 hours</option>
-                  <option>6-8 hours</option>
-                  <option>8+ hours</option>
-                </select>
-              </div>
-              <div>
-                <label>
-                  <input type="checkbox" style={{ marginRight: '8px' }} />
-                  🎵 Enable study music
-                </label>
-              </div>
-            </div>
-          </div>
+  <h3 style={{ fontSize: '18px', marginBottom: '12px', color: '#2d3748' }}>📝 Completed Topics</h3>
+
+ <div style={{ display: 'flex', marginBottom: '12px' }}>
+  <input
+    type="text"
+    value={newTopic}
+    onChange={(e) => setNewTopic(e.target.value)}
+    placeholder="Enter a new topic"
+    style={{ flexGrow: 1, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginRight: '8px' }}
+  />
+  <button
+    onClick={handleAddTopic}
+    style={{ ...buttonStyle, padding: '8px 12px' }}
+  >
+    ➕ Add
+              </button>
+              
+</div>
+
+<ul style={{ paddingLeft: '20px' }}>
+  {topicList
+    .filter(t => t.trim() !== '')
+    .map((topic, idx) => (
+      <li key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
+        <span style={{ flexGrow: 1 }}>{topic}</span>
+        <button
+          onClick={() => handleDeleteTopic(topic)}
+          style={{
+            padding: '4px 8px',
+            marginLeft: '8px',
+            backgroundColor: '#fed7d7',
+            color: '#c53030',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }}
+        >
+          🗑️ Delete
+        </button>
+      </li>
+    ))}
+</ul>
+            
+          
+</div>
           
         </div>
       </div>
