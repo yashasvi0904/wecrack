@@ -168,6 +168,6 @@ module.exports = {
     mockscore,
     getmockscore,
     addTask,
-    getTask
+    getTasks
 
 }
