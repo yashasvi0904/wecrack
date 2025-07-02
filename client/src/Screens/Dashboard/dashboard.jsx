@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, BookOpen, TrendingUp, FileText, Target, Heart, Settings, CheckCircle, Circle } from 'lucide-react';
 
+
 const GateDashboard = () => {
   const [tasks, setTasks] = useState([
     {
