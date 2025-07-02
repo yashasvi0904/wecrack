@@ -128,6 +128,36 @@ const getmockscore = async (req, res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 }
+const addTask = async (req, res) => {
+  try {
+    const user = req.user; // You already set this in verifyToken
+
+    const { subject, title } = req.body;
+    const newTask = {
+      subject,
+      title,
+      completed: false
+    };
+
+    user.tasks.push(newTask);
+    await user.save();
+
+    res.status(201).json({ message: "Task added successfully", tasks: user.tasks });
+  } catch (err) {
+    console.error("Error adding task:", err);
+    res.status(500).json({ message: "Failed to add task" });
+  }
+};
+
+const getTasks = async (req, res) => {
+  try {
+    const user = req.user; // From verifyToken
+    res.status(200).json(user.tasks);
+  } catch (err) {
+    console.error("Error getting tasks:", err);
+    res.status(500).json({ message: "Failed to fetch tasks" });
+  }
+};
 
 
 module.exports = {
@@ -136,6 +166,8 @@ module.exports = {
     logoutUser,
     userdetails,
     mockscore,
-    getmockscore
+    getmockscore,
+    addTask,
+    getTask
 
 }
