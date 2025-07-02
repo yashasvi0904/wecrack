@@ -42,8 +42,16 @@ const loginUser = async (req, res) => {
     }
     const accessToken = user.getAccessToken({ role: user.role });
     const refreshToken = user.getRefreshToken();
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
     user.refreshToken = refreshToken;
     await user.save();
+      
+
+
     res
       .cookie("accessToken", accessToken, options)
       .cookie("refreshToken", refreshToken, options)
@@ -72,11 +80,24 @@ const logoutUser = async(req,res) => {
         return res.status(500).json({ message: "Internal server error" });
     }
 }
+const userdetails = async(req,res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json({user});
+    } catch (error) {
+        console.error("Error fetching user details:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+}
 
 
 module.exports = {
     registerUser,
     loginUser,
     logoutUser,
+    userdetails
 
 }

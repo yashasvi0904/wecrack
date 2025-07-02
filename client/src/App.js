@@ -9,9 +9,10 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<GateDashboard />} />
+        <Route path="/" element={<GateTrackerLanding />} />
         <Route path="/login" element={<LoginScreen />}/>
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/dashboard" element={<GateDashboard />} />
         
       </Routes>
     </Router>

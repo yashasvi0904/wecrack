@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -27,10 +28,20 @@ export default function LoginScreen() {
     if (!validateForm()) return;
     
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
-    setIsLoading(false);
-    console.log(isSignUp ?
-       'Sign Up:' : 'Login:', { email, password, ...(isSignUp && { name }), rememberMe });
+    try {
+      const url = process.env.REACT_APP_LOGIN_USER;
+      const payload = isSignUp
+        ? { email, password, name }
+        : { email, password };
+      const response = await axios.post(url, payload, { withCredentials: true });
+
+      console.log(response.data); // optional: handle success response
+      navigate('/dashboard'); // redirect to dashboard or any page
+    } catch (error) {
+      console.error("Login/Signup failed:", error.response?.data || error.message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const inputStyle = (error) => ({

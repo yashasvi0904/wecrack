@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Plus, BookOpen, TrendingUp, FileText, Target, Heart, Settings, CheckCircle, Circle } from 'lucide-react';
 
@@ -11,13 +11,17 @@ const GateDashboard = () => {
       completed: false
     }
   ]);
-const [user , setUser] = useState({});
+const [user1 , setUser] = useState({});
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [newTask, setNewTask] = useState({ subject: 'DSA', title: '', time: '' });
   const [showSyllabus, setShowSyllabus] = useState(false);
   const [showSyllabusModal, setShowSyllabusModal] = useState(false);
   const [syllabusPDF, setSyllabusPDF] = useState('');
   const [branch, setBranch] = useState('CSE');
+  const [mockTestPDF, setMockTestPDF] = useState('');
+  const [showMockTestModal, setShowMockTestModal] = useState(false);
+  
+  
   
   const quotes = [
     "Push yourself, because no one else is going to do it for you.",
@@ -59,12 +63,15 @@ const userdetails = async () => {
         const response = await axios.get(process.env.REACT_APP_USER_DETAILS, {
             withCredentials: true
         });
-        setUser(response.data.name);
+        setUser(response.data.user.name);
     }
     catch (error) {
         console.error("Error fetching user details:", error);
     }
 }
+  useEffect(() => {
+    userdetails();
+  }, []);
 const handleAddTask = async () => {
   const subject = prompt("Enter subject (e.g. DSA, OS, DBMS):");
   const title = prompt("Enter task title:");
@@ -106,6 +113,20 @@ const toggleTask = async (taskId) => {
     alert("Failed to update task status.");
   }
 };
+    
+    const SendScore = async () => {
+        
+      const score = prompt("Enter your score:");
+      try {
+        const response = await axios.post('http://localhost:2000/send-score', { score }, {
+          withCredentials: true
+        });
+        alert(response.data.message || 'Score sent successfully');
+      } catch (err) {
+        console.error("Error sending score:", err);
+        alert("Failed to send score.");
+      }
+    };
   
   
 const cardStyle = { background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '16px' };
@@ -120,7 +141,7 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
         
         {/* Welcome Header */}
         <div style={cardStyle}>
-                 <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome back, From DB!</h1>
+          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome back, {user1}!</h1>
           <p style={{ color: '#718096', margin: 0 }}>Let's crack GATE with focus and consistency!</p>
         </div>
         
@@ -226,16 +247,26 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
           {/* Mock Tests */}
           <div style={cardStyle}>
             <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>🧪 Mock Tests</h3>
-            <button style={{...buttonStyle, width: '100%', marginBottom: '12px'}}>
+            <button
+              style={{...buttonStyle, width: '100%', marginBottom: '12px'}}
+              onClick={() => {
+                const randomIndex = Math.floor(Math.random() * 5) + 1;
+                setMockTestPDF(`/Gate_Mock/GATE_MockTest_${randomIndex}.pdf`);
+                setShowMockTestModal(true);
+              }}
+            >
               🧪 Take Mock Test
             </button>
-            <div style={{ fontSize: '14px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span>✅ Attempted: 6</span>
-                <span>📈 Avg Score: 72%</span>
-              </div>
-              <div>⭐ Best Score: 89% (GATE 2023)</div>
-            </div>
+
+            
+            <button
+              style={{ ...buttonStyle, width: '100%', marginBottom: '12px' }}
+              onClick={SendScore}
+              
+            >
+              Enter Score
+            </button>
+            
           </div>
           
           {/* Previous Papers */}
@@ -385,6 +416,59 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
           </div>
         </div>
       )}
+      {/* Mock Test Modal */}
+      {showMockTestModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0, left: 0,
+          width: '100vw',
+          height: '100vh',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 9999
+        }}>
+          <div style={{
+            background: 'white',
+            padding: '16px',
+            borderRadius: '8px',
+            maxWidth: '90vw',
+            maxHeight: '90vh',
+            overflow: 'auto',
+            position: 'relative'
+          }}>
+            <button
+              onClick={() => {
+                setShowMockTestModal(false);
+                
+              }}
+              style={{
+                position: 'absolute',
+                top: '8px',
+                right: '12px',
+                background: 'transparent',
+                border: 'none',
+                fontSize: '20px',
+                cursor: 'pointer'
+              }}
+            >
+              ❌
+            </button>
+            <iframe
+              src={mockTestPDF}
+              width="800px"
+              height="600px"
+              style={{ border: 'none' }}
+              title="Mock Test PDF"
+            />
+          </div>
+        </div>
+      )}
+
+      
+     
+      
     </div>
   );
 };
