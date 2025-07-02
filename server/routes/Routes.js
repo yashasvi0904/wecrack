@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, logoutUser, loginUser, userdetails, mockscore } = require('../controllers/user.controller');
+const { registerUser, logoutUser, loginUser, userdetails, mockscore, getmockscore } = require('../controllers/user.controller');
 const {verifyToken} = require('../middleware/auth');
 
 
@@ -12,6 +12,7 @@ router.get("/logout", verifyToken, logoutUser);
 router.get('/userdetails', verifyToken, userdetails);
 // Protected route to get mock score
 router.post('/mockscore', verifyToken, mockscore);
+router.get('/getmarks', verifyToken, getmockscore);
 
 
 module.exports = router;

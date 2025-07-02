@@ -72,6 +72,7 @@ const userdetails = async () => {
 }
   useEffect(() => {
     userdetails();
+    handleMarks();
   }, []);
 const handleAddTask = async () => {
   const subject = prompt("Enter subject (e.g. DSA, OS, DBMS):");
@@ -139,7 +140,8 @@ const toggleTask = async (taskId) => {
       const response = await axios.get('http://localhost:2000/getmarks', {
         withCredentials: true
       });
-      setMockTestMarks(response.data.marks);
+      setMockTestMarks(response.data);
+      console.log(response.data);
     } catch (err) {
       console.error("Error fetching marks:", err);
     }
@@ -305,22 +307,26 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
             </div>
           </div>
           
-          {/* Your Stats   => To be linked to teh mock test the user has given and all  */}
+          {/* Your Stats   => To be linked to the mock test the user has given and all  */}
           <div style={cardStyle}>
             <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>🧑‍🎓 Your Stats</h3>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
-                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#3182ce' }}>35%</div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#3182ce' }}>{mockTestMarks.length}</div>
                 <div style={{ fontSize: '12px' }}>Total Tests</div>
               </div>
               <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
-                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#38a169' }}>3/10</div>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#38a169' }}>
+                  {mockTestMarks.length > 0 ? Math.max(...mockTestMarks) : 0}
+                </div>
                 <div style={{ fontSize: '12px' }}>Highest Marks</div>
               </div>
-              {/* <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
-                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ed8936' }}>6</div>
-                <div style={{ fontSize: '12px' }}></div>
-              </div> */}
+              <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
+                <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ed8936' }}>
+                  {mockTestMarks.length > 0 ? Math.round(mockTestMarks.reduce((a, b) => a + b, 0) / mockTestMarks.length) : 0}
+                </div>
+                <div style={{ fontSize: '12px' }}>Avg. Score</div>
+              </div>
               <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
                 <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#9f7aea' }}>21</div>
                 <div style={{ fontSize: '12px' }}>🧾 Notes Saved</div>

@@ -121,8 +121,8 @@ const getmockscore = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        const marks = user.mockscore;
-        return res.status(200).json(marks);
+        return res.status(200).json(user.mockscore);
+        
     } catch (error) {
         console.error("Error fetching user details:", error);
         return res.status(500).json({ message: "Internal server error" });
@@ -135,6 +135,7 @@ module.exports = {
     loginUser,
     logoutUser,
     userdetails,
-    mockscore
+    mockscore,
+    getmockscore
 
 }
