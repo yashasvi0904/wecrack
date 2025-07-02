@@ -99,15 +99,22 @@ const mockscore = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
+
         const marks = req.body.marks;
-        user.mockscore = marks;
+
+        if (!Array.isArray(user.mockscore)) {
+            user.mockscore = []; // initialize if not an array
+        }
+
+        user.mockscore.push(marks); // append new score
         await user.save();
+
         return res.status(200).json("Marks updated successfully");
     } catch (error) {
         console.error("Error fetching user details:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
-}
+};
 const getmockscore = async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
