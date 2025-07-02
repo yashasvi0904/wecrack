@@ -11,7 +11,7 @@ const GateDashboard = () => {
       completed: false
     }
   ]);
-const [user1 , setUser] = useState({});
+const [user1 , setUser] = useState('');
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [newTask, setNewTask] = useState({ subject: 'DSA', title: '', time: '' });
   const [showSyllabus, setShowSyllabus] = useState(false);
@@ -20,6 +20,7 @@ const [user1 , setUser] = useState({});
   const [branch, setBranch] = useState('CSE');
   const [mockTestPDF, setMockTestPDF] = useState('');
   const [showMockTestModal, setShowMockTestModal] = useState(false);
+  const [mockTestMarks, setMockTestMarks] = useState([]);
   
   
   
@@ -63,7 +64,7 @@ const userdetails = async () => {
         const response = await axios.get(process.env.REACT_APP_USER_DETAILS, {
             withCredentials: true
         });
-        setUser(response.data.user.name);
+        setUser(response.data.user.name||'');
     }
     catch (error) {
         console.error("Error fetching user details:", error);
@@ -114,19 +115,35 @@ const toggleTask = async (taskId) => {
   }
 };
     
-    const SendScore = async () => {
-        
-      const score = prompt("Enter your score:");
-      try {
-        const response = await axios.post('http://localhost:2000/send-score', { score }, {
-          withCredentials: true
-        });
-        alert(response.data.message || 'Score sent successfully');
-      } catch (err) {
-        console.error("Error sending score:", err);
-        alert("Failed to send score.");
-      }
-    };
+  const SendScore = async () => {
+    const score = prompt("Enter your score:");
+    if (!score || isNaN(score)) {
+      alert("Please enter a valid number.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        'http://localhost:2000/mockscore',
+        { marks: Number(score) },
+        { withCredentials: true }
+      );
+      alert(response.data.message || 'Score sent successfully');
+    } catch (err) {
+      console.error("Error sending score:", err.response?.data || err.message);
+      alert("Failed to send score.");
+    }
+  };
+  const handleMarks = async () => {
+    try {
+      const response = await axios.get('http://localhost:2000/getmarks', {
+        withCredentials: true
+      });
+      setMockTestMarks(response.data.marks);
+    } catch (err) {
+      console.error("Error fetching marks:", err);
+    }
+  };
   
   
 const cardStyle = { background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '16px' };
@@ -141,7 +158,7 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
         
         {/* Welcome Header */}
         <div style={cardStyle}>
-          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome back, {user1 }!</h1>
+          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome back,{user1}!</h1>
           <p style={{ color: '#718096', margin: 0 }}>Let's crack GATE with focus and consistency!</p>
         </div>
         
@@ -294,16 +311,16 @@ const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 1
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
               <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
                 <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#3182ce' }}>35%</div>
-                <div style={{ fontSize: '12px' }}>🎯 Goals Completed</div>
+                <div style={{ fontSize: '12px' }}>Total Tests</div>
               </div>
               <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
                 <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#38a169' }}>3/10</div>
-                <div style={{ fontSize: '12px' }}>🔁 Revisions Done</div>
+                <div style={{ fontSize: '12px' }}>Highest Marks</div>
               </div>
-              <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
+              {/* <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
                 <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#ed8936' }}>6</div>
-                <div style={{ fontSize: '12px' }}>🧪 Tests Taken</div>
-              </div>
+                <div style={{ fontSize: '12px' }}></div>
+              </div> */}
               <div style={{ textAlign: 'center', padding: '8px', background: '#f7fafc', borderRadius: '6px' }}>
                 <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#9f7aea' }}>21</div>
                 <div style={{ fontSize: '12px' }}>🧾 Notes Saved</div>
