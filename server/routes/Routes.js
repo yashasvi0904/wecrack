@@ -1,6 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, logoutUser, loginUser, userdetails, mockscore, getmockscore,addTask,getTasks,addNote,getNotes,deleteTask,deleteNote } = require('../controllers/user.controller');
+
+const {
+  registerUser,
+  googleLoginUser,
+  logoutUser,
+  loginUser,
+  userdetails,
+  mockscore,
+  getmockscore,
+  addTask,
+  getTasks,
+  deleteTask,
+  addNote,
+  getNotes,
+  deleteNote,
+  topicstracker,
+  getTopics
+} = require('../controllers/user.controller');
+
 const {verifyToken} = require('../middleware/auth');
 
 
@@ -20,6 +38,10 @@ router.get("/get-notes", verifyToken, getNotes);
 router.post("/delete-task", verifyToken, deleteTask);
 router.post('/delete-note', verifyToken, deleteNote);
 
+
+router.post("/update-syllabus-progress", verifyToken, topicstracker);
+router.get("/get-syllabus-progress", verifyToken, getTopics);
+router.post("/auth/google", googleLoginUser);
 
 
 

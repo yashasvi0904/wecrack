@@ -1,4 +1,18 @@
 const User = require("../models/user.Model");
+require("dotenv").config();
+const admin = require("firebase-admin");
+if (!admin.apps.length) {
+  let serviceAccount;
+  try {
+    serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_CREDENTIALS);
+  } catch (e) {
+    console.error("Failed to parse FIREBASE_ADMIN_CREDENTIALS. Make sure it is a valid JSON string.");
+    throw e;
+  }
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
 
 
 const registerUser = async(req,res) => {
@@ -62,6 +76,55 @@ const loginUser = async (req, res) => {
     res.status(500).json({ message: "Login failed." });
   }
 
+};
+const googleLoginUser = async (req, res) => {
+  const { idToken } = req.body;
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+    const { email, name, picture } = decodedToken;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      let uniqueName = name;
+      let count = 1;
+      while (await User.findOne({ name: uniqueName })) {
+        uniqueName = `${name}${count}`;
+        count++;
+      }
+
+      user = new User({
+        name: uniqueName,
+        email,
+        avatar: picture,
+        isGoogleUser: true,
+      });
+
+      await user.save();
+    }
+
+    const accessToken = user.getAccessToken({ role: user.role });
+    const refreshToken = user.getRefreshToken();
+    user.refreshToken = refreshToken;
+    await user.save();
+
+    const options = {
+      httpOnly: true,
+      secure: true,
+      sameSite: "None",
+    };
+
+    res
+      .cookie("accessToken", accessToken, options)
+      .cookie("refreshToken", refreshToken, options)
+      .status(200)
+      .json({ message: "Google login successful.", role: user.role, id: user._id });
+
+  } catch (error) {
+    console.error("Google login error:", error);
+    res.status(401).json({ message: "Invalid Google ID token." });
+  }
 };
 const logoutUser = async(req,res) => {
     try {
@@ -228,10 +291,44 @@ const getNotes = async (req, res) => {
 
 
 
+const topicstracker = async (req, res) => {
+  try {
+    const { completedTopics } = req.body;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // ✅ Replace with updated list (deduplicated and trimmed)
+    user.topics = completedTopics
+      .map(t => t.trim())
+      .filter((t, i, arr) => t !== '' && arr.indexOf(t) === i); // remove duplicates
+
+    await user.save();
+    return res.status(200).json({ topics: user.topics });
+  } catch (error) {
+    console.error("Error saving topics:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+const getTopics = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    return res.status(200).json({ topics: user.topics });
+  } catch (error) {
+    console.error("Error fetching topics:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 module.exports = {
     registerUser,
     loginUser,
+    googleLoginUser,
     logoutUser,
     userdetails,
     mockscore,
@@ -242,6 +339,8 @@ module.exports = {
     getNotes,
     deleteTask,
     deleteNote
-  
+    topicstracker,
+    getTopics,
+    
 
 }
