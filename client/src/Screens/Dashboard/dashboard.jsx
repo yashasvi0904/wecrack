@@ -337,6 +337,8 @@ const GateDashboard = () => {
 
     const branchCode = selected.split(' - ')[0];
     const pdfPath = `/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, '');
+    setSyllabusPDF(pdfPath);
+    setShowSyllabusModal(true);
     
     try {
       const response = await fetch(pdfPath);
@@ -470,6 +472,45 @@ const GateDashboard = () => {
     transition: "background-color 0.3s ease",
   });
 
+
+  // songs
+const audioRef = useRef(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentSongIndex, setCurrentSongIndex] = useState(0);
+
+  const songs = [
+    { name: "Song 1", file: "/Music/Song1.mp3" },
+    { name: "Song 2", file: "/Music/Song2.mp3" },
+  ];
+
+  const togglePlay = () => {
+    const audio = audioRef.current;
+
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+    } else {
+      audio.play().catch((err) => {
+        console.error("Audio play error:", err);
+        alert("Cannot play audio. Check console.");
+      });
+    }
+
+    setIsPlaying(!isPlaying);
+  };
+
+  const switchSong = () => {
+    const nextIndex = (currentSongIndex + 1) % songs.length;
+    setCurrentSongIndex(nextIndex);
+    setIsPlaying(false);
+
+    // Delay to allow state update
+    setTimeout(() => {
+      audioRef.current.play();
+      setIsPlaying(true);
+    }, 100);
+  };
   return (
     <div
       style={{
@@ -478,6 +519,61 @@ const GateDashboard = () => {
         padding: "20px",
       }}
     >
+      <audio ref={audioRef} src={songs[currentSongIndex].file} loop />
+
+      <div
+        style={{
+          position: "fixed",
+          top: "20px",
+          right: "20px",
+          background: "#EAE4D5",
+          color: "#000000",
+          padding: "14px 18px",
+          borderRadius: "14px",
+          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+          zIndex: 9999,
+          display: "flex",
+          alignItems: "center",
+          gap: "14px",
+        }}
+      >
+        {/* Song Selector */}
+        <select
+          value={currentSongIndex}
+          onChange={(e) => switchSong(Number(e.target.value))}
+          style={{
+            background: "#F2F2F2",
+            color: "#000000",
+            padding: "6px 10px",
+            borderRadius: "6px",
+            border: "1px solid #B6B09F",
+            fontSize: "14px",
+            outline: "none",
+          }}
+        >
+          {songs.map((song, index) => (
+            <option key={index} value={index}>
+              {song.name}
+            </option>
+          ))}
+        </select>
+
+        {/* Play/Pause Button */}
+        <button
+          onClick={togglePlay}
+          style={{
+            background: isPlaying ? "#B6B09F" : "#000000",
+            border: "none",
+            padding: "8px 14px",
+            borderRadius: "8px",
+            color: "#F2F2F2",
+            cursor: "pointer",
+            fontSize: "14px",
+          }}
+        >
+          {isPlaying ? "Pause" : "Play"}
+        </button>
+      </div>
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Welcome Header */}
         <div style={cardStyle}>
