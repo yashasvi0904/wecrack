@@ -511,6 +511,9 @@ const audioRef = useRef(null);
       setIsPlaying(true);
     }, 100);
   };
+
+  // Spotify
+  
   return (
     <div
       style={{
