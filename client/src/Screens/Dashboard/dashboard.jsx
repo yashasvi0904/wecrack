@@ -10,6 +10,7 @@ import {
   Settings,
   CheckCircle,
   Circle,
+  Minus,
 } from "lucide-react";
 
 const GateDashboard = () => {
@@ -215,42 +216,88 @@ const GateDashboard = () => {
     }
   };
 
+  // const handleAddNote = async () => {
+  //   if (!newNote.title.trim() || !newNote.content.trim()) {
+  //     alert("Both title and content are required.");
+  //     return;
+  //   }
+
+  //   try {
+  //     const res = await axios.post(
+  //       "http://localhost:2000/add-note",
+  //       { title: newNote.title, content: newNote.content },
+  //       { withCredentials: true }
+  //     );
+  //     setNotes(res.data.notes);
+  //     setNewNote({ title: "", content: "" });
+  //     setShowNoteForm(false);
+  //     alert("Note added!");
+  //   } catch (err) {
+  //     console.error("Failed to add note:", err);
+  //     alert("Something went wrong.");
+  //   }
+  // };
+
   const handleAddNote = async () => {
-    if (!newNote.title.trim() || !newNote.content.trim()) {
-      alert("Both title and content are required.");
-      return;
-    }
+  if (!newNote.title.trim() || !newNote.content.trim()) {
+    alert("Both title and content are required.");
+    return;
+  }
 
-    try {
-      const res = await axios.post(
-        "http://localhost:2000/add-note",
-        { title: newNote.title, content: newNote.content },
-        { withCredentials: true }
-      );
-      setNotes(res.data.notes);
-      setNewNote({ title: "", content: "" });
-      setShowNoteForm(false);
-      alert("Note added!");
-    } catch (err) {
-      console.error("Failed to add note:", err);
-      alert("Something went wrong.");
-    }
-  };
+  const updatedNotes = [
+    ...notes,
+    {
+      title: newNote.title,
+      content: newNote.content,
+      id: Date.now(), // Add some unique ID client-side
+    },
+  ];
+
+  try {
+    const res = await axios.post(
+      "http://localhost:2000/save-notes",
+      { notes: updatedNotes },
+      { withCredentials: true }
+    );
+    setNotes(res.data.notes); // Optional, can skip and use `updatedNotes`
+    setNewNote({ title: "", content: "" });
+    setShowNoteForm(false);
+    alert("Note added!");
+  } catch (err) {
+    console.error("Failed to save notes:", err);
+    alert("Something went wrong.");
+  }
+};
+  // const handleDeleteNote = async (noteId) => {
+  //   try {
+  //     const res = await axios.post(
+  //       "http://localhost:2000/delete-note",
+  //       { noteId },
+  //       { withCredentials: true }
+  //     );
+  //     setNotes(res.data.notes);
+  //     alert("Note deleted!");
+  //   } catch (err) {
+  //     console.error("Delete note failed:", err);
+  //     alert("Failed to delete note.");
+  //   }
+  // };
+
   const handleDeleteNote = async (noteId) => {
-    try {
-      const res = await axios.post(
-        "http://localhost:2000/delete-note",
-        { noteId },
-        { withCredentials: true }
-      );
-      setNotes(res.data.notes);
-      alert("Note deleted!");
-    } catch (err) {
-      console.error("Delete note failed:", err);
-      alert("Failed to delete note.");
-    }
-  };
+  const updatedNotes = notes.filter((note) => note.id !== noteId);
 
+  try {
+    const res = await axios.post(
+      "http://localhost:2000/save-notes",
+      { notes: [] },
+      { withCredentials: true }
+    );
+    setNotes(res.data.notes); // Or just setNotes(updatedNotes)
+  } catch (err) {
+    console.error("Failed to save updated notes:", err);
+    alert("Delete failed.");
+  }
+};
   const SendScore = async () => {
     const score = prompt("Enter your score:");
     if (!score || isNaN(score)) {
@@ -288,30 +335,14 @@ const GateDashboard = () => {
     const selected = e.target.value;
     setBranch(selected);
 
-    const branchCode = selected.split(" - ")[0];
-    const pdfPath =
-      `/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, "");
-
+    const branchCode = selected.split(' - ')[0];
+    const pdfPath = `/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, '');
+    
     try {
       const response = await fetch(pdfPath);
       const blob = await response.blob();
 
-      // Convert PDF to base64 string (mock conversion to HTML)
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64data = reader.result;
-
-        // Send to backend (you can later parse this to real HTML in the backend)
-        await axios.post(
-          "http://localhost:2000/save-syllabus",
-          {
-            branch: branchCode,
-            syllabusHtml: base64data, // ideally convert to HTML before sending
-          },
-          { withCredentials: true }
-        );
-      };
-      reader.readAsDataURL(blob);
+      
     } catch (err) {
       console.error("Error processing syllabus PDF:", err);
     }
@@ -1016,6 +1047,7 @@ const GateDashboard = () => {
                     <div style={{ color: "#4a5568", fontSize: "12px" }}>
                       {note.content}
                     </div>
+                    
                   </div>
                 ))
               )}
@@ -1094,8 +1126,14 @@ const GateDashboard = () => {
                 style={{ ...buttonStyle, fontSize: "12px", width: "100%" }}
               >
                 <Plus size={14} style={{ marginRight: "4px" }} /> Add Note
-              </button>
+                </button>
+                
             )}
+            <button
+              onClick={handleDeleteNote 
+            }style={{ ...buttonStyle, fontSize: "12px", width: "100%", marginTop: "8px" }}>
+              <Minus size={14} style={{ marginRight: "4px" }} /> Delete Note
+            </button>
           </div>
 
           <div
@@ -1200,7 +1238,7 @@ const GateDashboard = () => {
               borderRadius: "12px",
               boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
               marginBottom: "24px",
-              maxWidth: "600px",
+              maxWidth: "330px",
               width: "100%",
               marginLeft: "40px",
             }}
@@ -1282,6 +1320,9 @@ const GateDashboard = () => {
                     backgroundColor: "#fff",
                   }}
                 />
+                
+              </div>
+              <div style={{ display: "flex", gap: "8px" }}>
                 <button
                   onClick={() => {
                     setTimerTime(Number(timerInput));
@@ -1302,8 +1343,6 @@ const GateDashboard = () => {
                 >
                   🟢 Start
                 </button>
-              </div>
-              <div style={{ display: "flex", gap: "8px" }}>
                 <button
                   onClick={() => setIsTimerRunning(false)}
                   style={buttonStyle1("#ED8936")}

@@ -12,9 +12,8 @@ const {
   addTask,
   getTasks,
   deleteTask,
-  addNote,
+  saveNotes,
   getNotes,
-  deleteNote,
   topicstracker,
   getTopics
 } = require('../controllers/user.controller');
@@ -33,10 +32,10 @@ router.post('/mockscore', verifyToken, mockscore);
 router.get('/getmarks', verifyToken, getmockscore);
 router.post('/add-task', verifyToken, addTask);
 router.get('/tasks', verifyToken, getTasks);
-router.post("/add-note", verifyToken, addNote);
+// router.post("/save-notes", verifyToken, saveNotes);
 router.get("/get-notes", verifyToken, getNotes);
 router.post("/delete-task", verifyToken, deleteTask);
-router.post('/delete-note', verifyToken, deleteNote);
+router.post('/save-notes', verifyToken, saveNotes);
 
 
 router.post("/update-syllabus-progress", verifyToken, topicstracker);

@@ -240,42 +240,22 @@ const deleteTask = async (req, res) => {
     res.status(500).json({ message: "Failed to delete task" });
   }
 };
-const deleteNote = async (req, res) => {
+const saveNotes = async (req, res) => {
   try {
     const user = req.user;
-    const { noteId } = req.body;
+    const { notes } = req.body;
 
-    const index = user.notes.findIndex(note => note._id.toString() === noteId);
-    if (index === -1) {
-      return res.status(404).json({ message: "Note not found" });
+    if (!Array.isArray(notes)) {
+      return res.status(400).json({ message: "Notes must be an array" });
     }
 
-    user.notes.splice(index, 1);
+    user.notes = notes;
     await user.save();
 
-    res.status(200).json({ message: "Note deleted", notes: user.notes });
+    res.status(200).json({ message: "Notes updated successfully", notes: user.notes });
   } catch (err) {
-    console.error("Error deleting note:", err);
-    res.status(500).json({ message: "Failed to delete note" });
-  }
-};
-
-const addNote = async (req, res) => {
-  try {
-    const user = req.user;
-    const { title, content } = req.body;
-
-    if (!title || !content) {
-      return res.status(400).json({ message: "Title and content are required" });
-    }
-
-    user.notes.push({ title, content });
-    await user.save();
-
-    res.status(201).json({ message: "Note added", notes: user.notes });
-  } catch (err) {
-    console.error("Error adding note:", err);
-    res.status(500).json({ message: "Internal server error" });
+    console.error("Error saving notes:", err);
+    res.status(500).json({ message: "Failed to save notes" });
   }
 };
 
@@ -335,12 +315,9 @@ module.exports = {
     getmockscore,
     addTask,
     getTasks,
-    addNote,
+    saveNotes,
     getNotes,
     deleteTask,
-    deleteNote,
     topicstracker,
     getTopics,
-    
-
 }
