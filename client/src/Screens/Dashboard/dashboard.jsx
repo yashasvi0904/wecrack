@@ -290,9 +290,7 @@ const [newTopic, setNewTopic] = useState('');
   const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' };
 
   
-const cardStyle = { background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '16px' };
-const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' };
-  
+
   // Toggle the completed status of a task and update backend
   // Toggle the completed status of a task and update backend
 useEffect(() => {
@@ -357,7 +355,7 @@ useEffect(() => {
 
           <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome back, {user1}!</h1>
 
-          <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome Back {user1 }!</h1>
+          {/* <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome Back {user1 }!</h1> */}
           <p style={{ color: '#718096', margin: 0 }}>Let's crack GATE with focus and consistency!</p>
         </div>
         
@@ -664,88 +662,101 @@ useEffect(() => {
             )}
           </div>
           
-          {/* User Preferences */}
-          <div style={cardStyle}>
+         
+<div style={{
+  backgroundColor: '#f7fafc',
+  padding: '20px',
+  borderRadius: '12px',
+  boxShadow: '0 2px 6px rgba(0, 0, 0, 0.08)',
+  marginBottom: '24px',
+  maxWidth: '600px',
+  width: '100%',
+}}>
+  <h3 style={{
+    fontSize: '20px',
+    fontWeight: '600',
+    color: '#2d3748',
+    marginBottom: '16px',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px'
+  }}>
+    📝 Completed Topics
+  </h3>
 
-            <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>⚙️ Preferences</h3>
-            <div style={{ fontSize: '14px' }}>
-              <div style={{ marginBottom: '8px' }}>
-                <label>🌐 GATE Branch: </label>
-                <select 
-                  value={branch}
-                  onChange={(e) => setBranch(e.target.value)}
-                  style={{ padding: '4px', borderRadius: '4px', border: '1px solid #e2e8f0' }}
-                >
-                  {branches.map(b => <option key={b} value={b}>{b}</option>)}
-                </select>
-              </div>
-              <div style={{ marginBottom: '8px' }}>
-                <label>📆 Daily Study Hours: </label>
-                <select style={{ padding: '4px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
-                  <option>4-6 hours</option>
-                  <option>6-8 hours</option>
-                  <option>8+ hours</option>
-                </select>
-              </div>
-              <div>
-                <label>
-                  <input type="checkbox" style={{ marginRight: '8px' }} />
-                  🎵 Enable study music
-                </label>
-              </div>
-            </div>
-          </div>
-  <h3 style={{ fontSize: '18px', marginBottom: '12px', color: '#2d3748' }}>📝 Completed Topics</h3>
+  <div style={{ display: 'flex', marginBottom: '16px' }}>
+    <input
+      type="text"
+      value={newTopic}
+      onChange={(e) => setNewTopic(e.target.value)}
+      placeholder="Enter a new topic"
+      style={{
+        flex: 1,
+        padding: '10px 12px',
+        borderRadius: '8px',
+        border: '1px solid #CBD5E0',
+        fontSize: '14px',
+        outline: 'none',
+        backgroundColor: '#fff'
+      }}
+    />
+    <button
+      onClick={handleAddTopic}
+      style={{
+        marginLeft: '8px',
+        padding: '10px 16px',
+        backgroundColor: '#48BB78',
+        color: 'white',
+        border: 'none',
+        borderRadius: '8px',
+        fontWeight: '600',
+        fontSize: '14px',
+        cursor: 'pointer',
+        transition: 'background-color 0.3s ease'
+      }}
+    >
+      ➕ Add
+    </button>
+  </div>
 
- <div style={{ display: 'flex', marginBottom: '12px' }}>
-  <input
-    type="text"
-    value={newTopic}
-    onChange={(e) => setNewTopic(e.target.value)}
-    placeholder="Enter a new topic"
-    style={{ flexGrow: 1, padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0', marginRight: '8px' }}
-  />
-  <button
-    onClick={handleAddTopic}
-    style={{ ...buttonStyle, padding: '8px 12px' }}
-  >
-    ➕ Add
-              </button>
-              
+  <ul style={{ listStyleType: 'disc', paddingLeft: '20px' }}>
+    {topicList
+      .filter(t => t.trim() !== '')
+      .map((topic, idx) => (
+        <li key={idx} style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '10px'
+        }}>
+          <span style={{ fontSize: '15px', color: '#2d3748' }}>{topic}</span>
+          <button
+            onClick={() => handleDeleteTopic(topic)}
+            style={{
+              padding: '6px 10px',
+              backgroundColor: '#F56565',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              fontSize: '13px',
+              cursor: 'pointer'
+            }}
+          >
+            🗑️ Delete
+          </button>
+        </li>
+      ))}
+  </ul>
 </div>
-
-<ul style={{ paddingLeft: '20px' }}>
-  {topicList
-    .filter(t => t.trim() !== '')
-    .map((topic, idx) => (
-      <li key={idx} style={{ display: 'flex', alignItems: 'center', marginBottom: '6px' }}>
-        <span style={{ flexGrow: 1 }}>{topic}</span>
-        <button
-          onClick={() => handleDeleteTopic(topic)}
-          style={{
-            padding: '4px 8px',
-            marginLeft: '8px',
-            backgroundColor: '#fed7d7',
-            color: '#c53030',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer',
-          }}
-        >
-          🗑️ Delete
-        </button>
-      </li>
-    ))}
-</ul>
             
           
 </div>
 
           
         </div>
-      </div>
+     
 
-      {/* Syllabus Modal */}
+     
       {showSyllabusModal && (
         <div style={{
           position: 'fixed',

@@ -25,9 +25,7 @@ mockscore: [{ type: Number }],
     title: String,
     content: String
   }
-]
-
-  mockscore: [{ type: Number }],
+],
   topics: [{ type: String }],
 
   

@@ -338,7 +338,7 @@ module.exports = {
     addNote,
     getNotes,
     deleteTask,
-    deleteNote
+    deleteNote,
     topicstracker,
     getTopics,
     
