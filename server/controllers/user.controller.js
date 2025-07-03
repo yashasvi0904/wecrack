@@ -221,6 +221,75 @@ const getTasks = async (req, res) => {
     res.status(500).json({ message: "Failed to fetch tasks" });
   }
 };
+const deleteTask = async (req, res) => {
+  try {
+    const user = req.user;
+    const { taskId } = req.body;
+
+    const originalLength = user.tasks.length;
+    user.tasks = user.tasks.filter(task => task._id.toString() !== taskId);
+
+    if (user.tasks.length === originalLength) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    await user.save();
+    res.status(200).json({ message: "Task deleted", tasks: user.tasks });
+  } catch (err) {
+    console.error("Error deleting task:", err);
+    res.status(500).json({ message: "Failed to delete task" });
+  }
+};
+const deleteNote = async (req, res) => {
+  try {
+    const user = req.user;
+    const { noteId } = req.body;
+
+    const index = user.notes.findIndex(note => note._id.toString() === noteId);
+    if (index === -1) {
+      return res.status(404).json({ message: "Note not found" });
+    }
+
+    user.notes.splice(index, 1);
+    await user.save();
+
+    res.status(200).json({ message: "Note deleted", notes: user.notes });
+  } catch (err) {
+    console.error("Error deleting note:", err);
+    res.status(500).json({ message: "Failed to delete note" });
+  }
+};
+
+const addNote = async (req, res) => {
+  try {
+    const user = req.user;
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ message: "Title and content are required" });
+    }
+
+    user.notes.push({ title, content });
+    await user.save();
+
+    res.status(201).json({ message: "Note added", notes: user.notes });
+  } catch (err) {
+    console.error("Error adding note:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+const getNotes = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    res.status(200).json(user.notes);
+  } catch (err) {
+    console.error("Error fetching notes:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+
 
 const topicstracker = async (req, res) => {
   try {
@@ -266,6 +335,10 @@ module.exports = {
     getmockscore,
     addTask,
     getTasks,
+    addNote,
+    getNotes,
+    deleteTask,
+    deleteNote
     topicstracker,
     getTopics,
     
