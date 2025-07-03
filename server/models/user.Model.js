@@ -19,6 +19,13 @@ const userSchema = new mongoose.Schema({
   }
   ],
 mockscore: [{ type: Number }],
+   notes: [
+  {
+    title: String,
+    content: String
+  }
+]
+
   
 });
 
