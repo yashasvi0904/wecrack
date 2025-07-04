@@ -94,39 +94,46 @@ const userdetails = async(req,res) => {
     }
 }
 const mockscore = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
+  try {
+    const user = req.user;
+    const { correct, total } = req.body;
 
-        const marks = req.body.marks;
+    user.mockscore.push({
+      correct,
+      total,
+      date: new Date()
+    });
 
-        if (!Array.isArray(user.mockscore)) {
-            user.mockscore = []; // initialize if not an array
-        }
-
-        user.mockscore.push(marks); // append new score
-        await user.save();
-
-        return res.status(200).json("Marks updated successfully");
-    } catch (error) {
-        console.error("Error fetching user details:", error);
-        return res.status(500).json({ message: "Internal server error" });
-    }
-};
+    await user.save();
+    res.status(200).json({ message: 'Mock score saved', mockscore: user.mockscore });
+  } catch (err) {
+    console.error('Error saving mock score:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+    };
 const getmockscore = async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        if (!user) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        return res.status(200).json(user.mockscore);
-        
-    } catch (error) {
-        console.error("Error fetching user details:", error);
-        return res.status(500).json({ message: "Internal server error" });
+   try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
+
+    const formattedScores = user.mockscore.map(score => {
+      const percentage = score.total ? Math.round((score.correct / score.total) * 100) : 0;
+      return {
+        correct: score.correct,
+        total: score.total,
+        percentage,
+        date: new Date(score.date).toLocaleDateString() // e.g., "7/7/2024"
+      };
+    });
+
+    res.status(200).json(formattedScores);
+  } catch (error) {
+    console.error("Error fetching mock scores:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 }
 const addTask = async (req, res) => {
   try {
@@ -225,6 +232,78 @@ const getNotes = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+const updateSyllabusTopic = async (req, res) => {
+  try {
+    const user = req.user;
+    const { subject, topic, status } = req.body;
+
+    const index = user.syllabus.findIndex(
+      t => t.subject === subject && t.topic === topic
+    );
+
+    if (index !== -1) {
+      user.syllabus[index].status = status;
+    } else {
+      user.syllabus.push({ subject, topic, status });
+    }
+
+    await user.save();
+    res.status(200).json({ message: 'Topic updated', syllabus: user.syllabus });
+  } catch (err) {
+    console.error('Error updating syllabus:', err);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
+const getAnalytics = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    // Subjects Completed
+    const totalTopics = user.syllabus?.length || 0;
+    const completedTopics = user.syllabus?.filter(t => t.status === "Completed").length || 0;
+    const subjectsCompleted = totalTopics ? Math.round((completedTopics / totalTopics) * 100) : 0;
+
+    // Practice Accuracy
+    const scores = user.mockscore || [];
+    const totalCorrect = scores.reduce((sum, s) => sum + s.correct, 0);
+    const totalQuestions = scores.reduce((sum, s) => sum + s.total, 0);
+    const accuracy = totalQuestions ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+
+    // Best Streak
+    const dates = (user.activityLog || []).map(d => new Date(d)).sort((a, b) => a - b);
+    let bestStreak = 0, currentStreak = 1;
+    for (let i = 1; i < dates.length; i++) {
+      const diff = (dates[i] - dates[i - 1]) / (1000 * 3600 * 24);
+      if (diff === 1) currentStreak++;
+      else currentStreak = 1;
+      bestStreak = Math.max(bestStreak, currentStreak);
+    }
+
+    // Consistency (last 30 days)
+    const last30 = new Set();
+    const today = new Date();
+    for (let i = 0; i < 30; i++) {
+      const d = new Date(today);
+      d.setDate(today.getDate() - i);
+      last30.add(d.toISOString().slice(0, 10));
+    }
+
+    const activeDays = (user.activityLog || []).filter(date => last30.has(date)).length;
+    const consistency = Math.round((activeDays / 30) * 100);
+
+    res.status(200).json({
+      subjectsCompleted,
+      accuracy,
+      bestStreak,
+      consistency
+    });
+  } catch (err) {
+    console.error("Error in analytics:", err);
+    res.status(500).json({ message: "Failed to calculate analytics" });
+  }
+};
+
+
 
 
 
@@ -241,7 +320,9 @@ module.exports = {
     addNote,
     getNotes,
     deleteTask,
-    deleteNote
+    deleteNote,
+    updateSyllabusTopic,
+    getAnalytics
   
 
 }

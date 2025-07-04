@@ -24,7 +24,16 @@ mockscore: [{ type: Number }],
     title: String,
     content: String
   }
-]
+],
+syllabus: [
+  {
+    subject: String,
+    topic: String,
+    status: { type: String, enum: ['Not Started', 'In Progress', 'Completed'], default: 'Not Started' }
+  }
+],
+activityLog: [String]
+
 
   
 });

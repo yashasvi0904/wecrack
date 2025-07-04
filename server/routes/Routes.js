@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { registerUser, logoutUser, loginUser, userdetails, mockscore, getmockscore,addTask,getTasks,addNote,getNotes,deleteTask,deleteNote } = require('../controllers/user.controller');
+const { registerUser, logoutUser, loginUser, userdetails, mockscore, getmockscore,addTask,getTasks,addNote,getNotes,deleteTask,deleteNote,getAnalytics,updateSyllabusTopic } = require('../controllers/user.controller');
 const {verifyToken} = require('../middleware/auth');
 
 
@@ -19,6 +19,8 @@ router.post("/add-note", verifyToken, addNote);
 router.get("/get-notes", verifyToken, getNotes);
 router.post("/delete-task", verifyToken, deleteTask);
 router.post('/delete-note', verifyToken, deleteNote);
+router.get('/get-analytics', verifyToken, getAnalytics);
+router.post('/update-topic', verifyToken, updateSyllabusTopic);
 
 
 

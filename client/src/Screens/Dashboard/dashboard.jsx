@@ -3,6 +3,15 @@ import axios from 'axios';
 import { Plus, BookOpen, TrendingUp, FileText, Target, Heart, Settings, CheckCircle, Circle } from 'lucide-react';
 
 const GateDashboard = () => {
+  const [analytics, setAnalytics] = useState({
+  subjectsCompleted: 0,
+  accuracy: 0,
+  bestStreak: 0,
+  consistency: 0
+});
+
+  const [pyqPDF, setPyqPDF] = useState('');
+  const [showPYQModal, setShowPYQModal] = useState(false);
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ title: '', content: '' });
   const [showNoteForm, setShowNoteForm] = useState(false);
@@ -20,6 +29,16 @@ const GateDashboard = () => {
   const [currentQuote, setCurrentQuote] = useState("Loading motivation...");
 
 
+const fetchAnalytics = async () => {
+  try {
+    const res = await axios.get("http://localhost:2000/get-analytics", {
+      withCredentials: true
+    });
+    setAnalytics(res.data);
+  } catch (err) {
+    console.error("Failed to fetch analytics:", err);
+  }
+};
 
 const fetchMotivationalQuote = async () => {
   try {
@@ -80,6 +99,7 @@ const fetchMotivationalQuote = async () => {
     fetchTasks();
     fetchNotes();
     fetchMotivationalQuote();
+    fetchAnalytics();
   }, []);
 
   const fetchTasks = async () => {
@@ -351,29 +371,7 @@ const fetchMotivationalQuote = async () => {
           </div>
           
           {/* Performance Analytics */}
-          <div style={cardStyle}>
-            <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>📊 Performance Analytics</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Subjects Completed</span>
-                <span style={{ fontWeight: 'bold', color: '#38a169' }}>65%</span>
-              </div>
-              <div style={{ background: '#e2e8f0', height: '8px', borderRadius: '4px' }}>
-                <div style={{ background: '#38a169', height: '100%', width: '65%', borderRadius: '4px' }}></div>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span>Practice Accuracy</span>
-                <span style={{ fontWeight: 'bold', color: '#3182ce' }}>78%</span>
-              </div>
-              <div style={{ background: '#e2e8f0', height: '8px', borderRadius: '4px' }}>
-                <div style={{ background: '#3182ce', height: '100%', width: '78%', borderRadius: '4px' }}></div>
-              </div>
-            </div>
-            <div style={{ marginTop: '12px', display: 'flex', justifyContent: 'space-between' }}>
-              <span>👑 Best Streak: <strong>12 days</strong></span>
-              <span>🎯 Consistency: <strong>85%</strong></span>
-            </div>
-          </div>
+
           
           {/* Mock Tests */}
           <div style={cardStyle}>
@@ -396,25 +394,117 @@ const fetchMotivationalQuote = async () => {
               Enter Score
             </button>
           </div>
+          {/* PYQ Modal */}
+{showPYQModal && (
+  <div style={{
+    position: 'fixed',
+    top: 0, left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: 'white',
+      padding: '16px',
+      borderRadius: '8px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      overflow: 'auto',
+      position: 'relative'
+    }}>
+      <button
+        onClick={() => setShowPYQModal(false)}
+        style={{
+          position: 'absolute',
+          top: '8px',
+          right: '12px',
+          background: 'transparent',
+          border: 'none',
+          fontSize: '20px',
+          cursor: 'pointer'
+        }}
+      >
+        ❌
+      </button>
+      <iframe
+        src={pyqPDF}
+        width="800px"
+        height="600px"
+        style={{ border: 'none' }}
+        title="PYQ PDF"
+      />
+    </div>
+  </div>
+)}
+
           
           {/* Previous Papers */}
-          <div style={cardStyle}>
-            <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>📂 Previous Papers</h3>
-            <button style={{...buttonStyle, width: '100%', marginBottom: '12px'}}>
-              <FileText size={16} style={{ marginRight: '8px' }} /> View PYQs
+          
+<div style={cardStyle}>
+  <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>📂 Previous Papers</h3>
+
+  <div style={{ fontSize: '13px' }}>
+    {[
+      { year: '2023', file: 'gate 2023.pdf' },
+      { year: '2022', file: 'gate 2022.pdf' },
+      { year: '2021 Set 1', file: 'gate 2021 set 1.pdf' },
+      { year: '2021 Set 2', file: 'gate 2021 set 2.pdf' },
+      { year: '2020 (CSE)', file: 'gate 2020 cse.pdf' },
+      { year: '2019 (CSE)', file: 'gate 2019 cse.pdf' },
+    ].map(({ year, file }) => {
+      const fileUrl = `/Gate_PYQs/${file}`;
+
+      return (
+        <div
+          key={year}
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}
+        >
+          <span style={{ fontWeight: '500' }}>GATE {year}</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              style={{
+                fontSize: '11px',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                background: '#667eea',
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+              onClick={() => {
+                setPyqPDF(fileUrl);
+                setShowPYQModal(true);
+              }}
+            >
+              👁️ View
             </button>
-            <div style={{ fontSize: '13px' }}>
-              {['2024', '2023', '2022', '2021'].map(year => (
-                <div key={year} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                  <span>GATE {year}</span>
-                  <div>
-                    <button style={{ fontSize: '11px', padding: '2px 6px', marginRight: '4px', border: '1px solid #e2e8f0', borderRadius: '4px', background: 'white' }}>📥</button>
-                    <button style={{ fontSize: '11px', padding: '2px 6px', border: '1px solid #e2e8f0', borderRadius: '4px', background: 'white' }}>✅</button>
-                  </div>
-                </div>
-              ))}
-            </div>
+
+            <a
+              href={fileUrl}
+              download
+              style={{
+                fontSize: '11px',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                background: 'white',
+                border: '1px solid #e2e8f0',
+                color: '#2d3748',
+                textDecoration: 'none'
+              }}
+            >
+              📥 Download
+            </a>
           </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
           
           {/* Your Stats */}
           <div style={cardStyle}>
