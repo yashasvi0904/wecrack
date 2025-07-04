@@ -20,7 +20,8 @@ const {
   topicstracker,
   getTopics,
   getAnalytics,
-  updateSyllabusTopic
+  updateSyllabusTopic,
+  deleteNote
 } = require('../controllers/user.controller');
 
 

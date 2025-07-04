@@ -34,7 +34,7 @@ syllabus: [
     status: { type: String, enum: ['Not Started', 'In Progress', 'Completed'], default: 'Not Started' }
   }
 ],
-activityLog: [String]
+activityLog: [String],
 
 
   topics: [{ type: String }],

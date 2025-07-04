@@ -157,96 +157,44 @@ const userdetails = async(req,res) => {
     }
 }
 const mockscore = async (req, res) => {
-  try {
-    const user = req.user;
-    const { correct, total } = req.body;
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
 
-    user.mockscore.push({
-      correct,
-      total,
-      date: new Date()
-    });
+        const marks = req.body.marks;
 
-    await user.save();
-    res.status(200).json({ message: 'Mock score saved', mockscore: user.mockscore });
-  } catch (err) {
-    console.error('Error saving mock score:', err);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-    };
+        if (!Array.isArray(user.mockscore)) {
+            user.mockscore = []; // initialize if not an array
+        }
+      console.log(user.mockscore);
+
+        user.mockscore.push(marks); // append new score
+        await user.save();
+
+        return res.status(200).json("Marks updated successfully");
+    } catch (error) {
+        console.error("Error fetching user details:", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
+};
 const getmockscore = async (req, res) => {
-   try {
-    const user = await User.findById(req.user.id);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json(user.mockscore);
+        
+    } catch (error) {
+        console.error("Error fetching user details:", error);
+        return res.status(500).json({ message: "Internal server error" });
     }
-
-    const formattedScores = user.mockscore.map(score => {
-      const percentage = score.total ? Math.round((score.correct / score.total) * 100) : 0;
-      return {
-        correct: score.correct,
-        total: score.total,
-        percentage,
-        date: new Date(score.date).toLocaleDateString() // e.g., "7/7/2024"
-      };
-    });
-
-    res.status(200).json(formattedScores);
-  } catch (error) {
-    console.error("Error fetching mock scores:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
 }
-const addTask = async (req, res) => {
-  try {
-    const user = req.user; // You already set this in verifyToken
 
-    const { subject, title } = req.body;
-    const newTask = {
-      subject,
-      title,
-      completed: false
-    };
 
-    user.tasks.push(newTask);
-    await user.save();
 
-    res.status(201).json({ message: "Task added successfully", tasks: user.tasks });
-  } catch (err) {
-    console.error("Error adding task:", err);
-    res.status(500).json({ message: "Failed to add task" });
-  }
-};
-
-const getTasks = async (req, res) => {
-  try {
-    const user = req.user; // From verifyToken
-    res.status(200).json(user.tasks);
-  } catch (err) {
-    console.error("Error getting tasks:", err);
-    res.status(500).json({ message: "Failed to fetch tasks" });
-  }
-};
-const deleteTask = async (req, res) => {
-  try {
-    const user = req.user;
-    const { taskId } = req.body;
-
-    const originalLength = user.tasks.length;
-    user.tasks = user.tasks.filter(task => task._id.toString() !== taskId);
-
-    if (user.tasks.length === originalLength) {
-      return res.status(404).json({ message: "Task not found" });
-    }
-
-    await user.save();
-    res.status(200).json({ message: "Task deleted", tasks: user.tasks });
-  } catch (err) {
-    console.error("Error deleting task:", err);
-    res.status(500).json({ message: "Failed to delete task" });
-  }
-};
 const deleteNote = async (req, res) => {
   try {
     const user = req.user;
@@ -285,7 +233,9 @@ const addNote = async (req, res) => {
     console.error("Error adding note:", err);
     res.status(500).json({ message: "Internal server error" });
 
-}
+  }
+};
+
 const addTask = async (req, res) => {
   try {
     const user = req.user; // You already set this in verifyToken
@@ -441,8 +391,6 @@ const getAnalytics = async (req, res) => {
 
 
 
-
-
 const topicstracker = async (req, res) => {
   try {
     const { completedTopics } = req.body;
@@ -479,23 +427,24 @@ const getTopics = async (req, res) => {
 
 
 module.exports = {
-    registerUser,
-    loginUser,
-    googleLoginUser,
-    logoutUser,
-    userdetails,
-    mockscore,
-    getmockscore,
-    addTask,
-    getTasks,
-    addNote,
-    deleteNote,
-    updateSyllabusTopic,
-    getAnalytics,
-    saveNotes,
-    getNotes,
-    deleteTask,
-    topicstracker,
-    getTopics,
+  registerUser,
+  loginUser,
+  googleLoginUser,
+  logoutUser,
+  userdetails,
+  mockscore,
+  getmockscore,
+  addTask,
+  getTasks,
+  
+  addNote,
+  deleteNote,
+  updateSyllabusTopic,
+  getAnalytics,
+  saveNotes,
+  getNotes,
+  deleteTask,
+  topicstracker,
+  getTopics,
 
 }

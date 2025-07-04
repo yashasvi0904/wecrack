@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import  { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Plus,
@@ -12,6 +12,15 @@ import {
   Circle,
   Minus,
 } from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+  ResponsiveContainer,
+} from "recharts";
 
 const GateDashboard = () => {
 
@@ -20,7 +29,20 @@ const GateDashboard = () => {
   accuracy: 0,
   bestStreak: 0,
   consistency: 0
-});
+  });
+  const quoteList = [
+    "Success is not final, failure is not fatal: It is the courage to continue that counts. – Winston Churchill",
+    "Don’t watch the clock; do what it does. Keep going. – Sam Levenson",
+    "The future belongs to those who believe in the beauty of their dreams. – Eleanor Roosevelt",
+    "The only way to do great work is to love what you do. – Steve Jobs",
+    "It always seems impossible until it’s done. – Nelson Mandela",
+    "Hardships often prepare ordinary people for an extraordinary destiny. – C.S. Lewis",
+    "Push yourself, because no one else is going to do it for you.",
+    "Great things never come from comfort zones.",
+    "Dream it. Wish it. Do it.",
+    "Success doesn’t just find you. You have to go out and get it."
+  ];
+  
 
   const [pyqPDF, setPyqPDF] = useState('');
   const [showPYQModal, setShowPYQModal] = useState(false);
@@ -38,14 +60,21 @@ const GateDashboard = () => {
     title: "",
     time: "",
   });
-  const [showSyllabus, setShowSyllabus] = useState(false);
-  const [showSyllabusModal, setShowSyllabusModal] = useState(false);
-  const [syllabusPDF, setSyllabusPDF] = useState("");
-  const [branch, setBranch] = useState("CSE");
-  const [mockTestPDF, setMockTestPDF] = useState("");
-  const [showMockTestModal, setShowMockTestModal] = useState(false);
-  const [mockTestMarks, setMockTestMarks] = useState([]);
+const [showSyllabus, setShowSyllabus] = useState(false);
+const [showSyllabusModal, setShowSyllabusModal] = useState(false);
+const [syllabusPDF, setSyllabusPDF] = useState("");
+const [branch, setBranch] = useState("CSE");
+const [mockTestPDF, setMockTestPDF] = useState("");
+const [showMockTestModal, setShowMockTestModal] = useState(false);
+const [mockTestMarks, setMockTestMarks] = useState([]);
+const [currentQuote, setCurrentQuote] = useState(
+  quoteList[Math.floor(Math.random() * quoteList.length)]
+);
 
+const fetchMotivationalQuote = () => {
+  const randomIndex = Math.floor(Math.random() * quoteList.length);
+  setCurrentQuote(quoteList[randomIndex]);
+};
 
 
 
@@ -66,7 +95,7 @@ const fetchAnalytics = async () => {
  
 
 
-  const [currentQuote, setCurrentQuote] = useState("Loading motivation...");
+
   const [stopwatchTime, setStopwatchTime] = useState(0);
   const [isStopwatchRunning, setIsStopwatchRunning] = useState(false);
   const stopwatchInterval = useRef(null);
@@ -77,16 +106,7 @@ const fetchAnalytics = async () => {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const timerInterval = useRef(null);
 
-  const fetchMotivationalQuote = async () => {
-    try {
-      const res = await axios.get("https://zenquotes.io/api/random");
-      const quoteObj = res.data[0];
-      setCurrentQuote(`${quoteObj.q} — ${quoteObj.a}`);
-    } catch (err) {
-      console.error("Quote fetch failed:", err);
-      setCurrentQuote("Stay consistent and believe in yourself!");
-    }
-  };
+
 
   const [topicList, setTopicList] = useState([]);
   const [newTopic, setNewTopic] = useState("");
@@ -364,18 +384,18 @@ const fetchAnalytics = async () => {
     }
   };
 
-  const handleMarks = async () => {
+   const handleMarks = async () => {
     try {
       const response = await axios.get("http://localhost:2000/getmarks", {
         withCredentials: true,
       });
+      console.log(response.data);
       setMockTestMarks(response.data);
       console.log(response.data);
     } catch (err) {
       console.error("Error fetching marks:", err);
     }
   };
-
   
 
   const cardStyle = { background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '16px' };
@@ -402,23 +422,7 @@ const fetchAnalytics = async () => {
     }
   };
 
-  const cardStyle = {
-    background: "white",
-    borderRadius: "12px",
-    padding: "20px",
-    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-    marginBottom: "16px",
-  };
-  const buttonStyle = {
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 16px",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "500",
-  };
+  
 
   // Toggle the completed status of a task and update backend
   // Toggle the completed status of a task and update backend
@@ -481,6 +485,7 @@ const fetchAnalytics = async () => {
       console.error("Failed to sync deleted topic:", err);
     }
   };
+  
 
   // STopWatch
   useEffect(() => {
@@ -858,81 +863,41 @@ const audioRef = useRef(null);
             {/* TODO: Add checkbox and notes UI for each syllabus topic from backend */}
           </div>
 
-          {/* Performance Analytics */}
+<div style={cardStyle}>
+  <h3
+    style={{
+      fontSize: "18px",
+      margin: "0 0 12px 0",
+      color: "#2d3748",
+    }}
+  >
+    📊 Performance Analytics
+  </h3>
 
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "18px",
-                margin: "0 0 12px 0",
-                color: "#2d3748",
-              }}
-            >
-              📊 Performance Analytics
-            </h3>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>Subjects Completed</span>
-                <span style={{ fontWeight: "bold", color: "#38a169" }}>
-                  65%
-                </span>
-              </div>
-              <div
-                style={{
-                  background: "#e2e8f0",
-                  height: "8px",
-                  borderRadius: "4px",
-                }}
-              >
-                <div
-                  style={{
-                    background: "#38a169",
-                    height: "100%",
-                    width: "65%",
-                    borderRadius: "4px",
-                  }}
-                ></div>
-              </div>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <span>Practice Accuracy</span>
-                <span style={{ fontWeight: "bold", color: "#3182ce" }}>
-                  78%
-                </span>
-              </div>
-              <div
-                style={{
-                  background: "#e2e8f0",
-                  height: "8px",
-                  borderRadius: "4px",
-                }}
-              >
-                <div
-                  style={{
-                    background: "#3182ce",
-                    height: "100%",
-                    width: "78%",
-                    borderRadius: "4px",
-                  }}
-                ></div>
-              </div>
-            </div>
-            <div
-              style={{
-                marginTop: "12px",
-                display: "flex",
-                justifyContent: "space-between",
-              }}
-            >
-              <span>
-                👑 Best Streak: <strong>12 days</strong>
-              </span>
-              <span>
-                🎯 Consistency: <strong>85%</strong>
-              </span>
-            </div>
-          </div>
+ <div style={{ marginTop: "12px" }}>
+  {/* <h4 style={{ fontSize: "16px", marginBottom: "8px" }}>📋 Mock Test Summary</h4> */}
+  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
+    <thead>
+      <tr style={{ background: "#f7fafc", color: "#4a5568" }}>
+        <th style={{ padding: "8px", border: "1px solid #e2e8f0" }}>Test #</th>
+        <th style={{ padding: "8px", border: "1px solid #e2e8f0" }}>Score</th>
+      </tr>
+    </thead>
+    <tbody>
+      {mockTestMarks.slice(-3).map((score, index) => (
+        <tr key={index}>
+          <td style={{ padding: "8px", border: "1px solid #e2e8f0", textAlign: "center" }}>
+            {mockTestMarks.length - 4 + index + 1}
+          </td>
+          <td style={{ padding: "8px", border: "1px solid #e2e8f0", textAlign: "center" }}>
+            {typeof score === "number" && !isNaN(score) ? `${score}%` : "N/A"}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+</div>
 
 
           {/* Mock Tests */}
@@ -1078,62 +1043,7 @@ const audioRef = useRef(null);
           
 
 
-          {/* Previous Papers */}
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "18px",
-                margin: "0 0 12px 0",
-                color: "#2d3748",
-              }}
-            >
-              📂 Previous Papers
-            </h3>
-            <button
-              style={{ ...buttonStyle, width: "100%", marginBottom: "12px" }}
-            >
-              <FileText size={16} style={{ marginRight: "8px" }} /> View PYQs
-            </button>
-            <div style={{ fontSize: "13px" }}>
-              {["2024", "2023", "2022", "2021"].map((year) => (
-                <div
-                  key={year}
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    marginBottom: "4px",
-                  }}
-                >
-                  <span>GATE {year}</span>
-                  <div>
-                    <button
-                      style={{
-                        fontSize: "11px",
-                        padding: "2px 6px",
-                        marginRight: "4px",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: "4px",
-                        background: "white",
-                      }}
-                    >
-                      📥
-                    </button>
-                    <button
-                      style={{
-                        fontSize: "11px",
-                        padding: "2px 6px",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: "4px",
-                        background: "white",
-                      }}
-                    >
-                      ✅
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          
 
 
           {/* Your Stats */}
