@@ -14,11 +14,24 @@ import {
 } from "lucide-react";
 
 const GateDashboard = () => {
+
+  const [analytics, setAnalytics] = useState({
+  subjectsCompleted: 0,
+  accuracy: 0,
+  bestStreak: 0,
+  consistency: 0
+});
+
+  const [pyqPDF, setPyqPDF] = useState('');
+  const [showPYQModal, setShowPYQModal] = useState(false);
+  
+
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ title: "", content: "" });
   const [showNoteForm, setShowNoteForm] = useState(false);
   const [tasks, setTasks] = useState([]);
   const [user1, setUser] = useState("");
+
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [newTask, setNewTask] = useState({
     subject: "DSA",
@@ -32,6 +45,26 @@ const GateDashboard = () => {
   const [mockTestPDF, setMockTestPDF] = useState("");
   const [showMockTestModal, setShowMockTestModal] = useState(false);
   const [mockTestMarks, setMockTestMarks] = useState([]);
+
+
+
+
+const fetchAnalytics = async () => {
+  try {
+    const res = await axios.get("http://localhost:2000/get-analytics", {
+      withCredentials: true
+    });
+    setAnalytics(res.data);
+  } catch (err) {
+    console.error("Failed to fetch analytics:", err);
+  }
+};
+
+
+  
+  
+ 
+
 
   const [currentQuote, setCurrentQuote] = useState("Loading motivation...");
   const [stopwatchTime, setStopwatchTime] = useState(0);
@@ -59,6 +92,7 @@ const GateDashboard = () => {
   const [newTopic, setNewTopic] = useState("");
 
   const subjects = ["DSA", "OS", "CN", "DBMS", "COA", "Math"];
+
   const branches = [
     "AE - Aerospace Engineering",
     "AG - Agricultural Engineering",
@@ -94,6 +128,7 @@ const GateDashboard = () => {
   const userdetails = async () => {
     try {
       const response = await axios.get(process.env.REACT_APP_USER_DETAILS, {
+
         withCredentials: true,
       });
       setUser(response.data.user.name || "");
@@ -102,18 +137,24 @@ const GateDashboard = () => {
     }
   };
 
+
   useEffect(() => {
     userdetails();
     handleMarks();
     fetchTasks();
     fetchNotes();
     fetchMotivationalQuote();
+
+    fetchAnalytics();
   }, []);
 
   const fetchTasks = async () => {
     try {
       const response = await axios.get("http://localhost:2000/tasks", {
+
+
         withCredentials: true,
+
       });
       setTasks(response.data);
     } catch (err) {
@@ -133,6 +174,8 @@ const GateDashboard = () => {
     const newTaskItem = {
       subject,
       title,
+
+
       completed: false,
     };
     try {
@@ -145,12 +188,14 @@ const GateDashboard = () => {
       );
       alert(response.data.message || "Task added successfully");
       setTasks((prev) => [...(prev || []), { ...newTaskItem, id: Date.now() }]);
+
     } catch (err) {
       console.error("Error adding task:", err);
       alert("Failed to add task.");
     }
   };
   const handleDeleteTask = async () => {
+
     if (tasks.length === 0) {
       alert("No tasks to delete.");
       return;
@@ -298,6 +343,7 @@ const GateDashboard = () => {
     alert("Delete failed.");
   }
 };
+
   const SendScore = async () => {
     const score = prompt("Enter your score:");
     if (!score || isNaN(score)) {
@@ -329,6 +375,12 @@ const GateDashboard = () => {
       console.error("Error fetching marks:", err);
     }
   };
+
+  
+
+  const cardStyle = { background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '16px' };
+  const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' };
+
 
   // Handles GATE branch change, fetches PDF, converts to HTML (mock), and sends to backend
   const handleBranchChange = async (e) => {
@@ -473,6 +525,7 @@ const GateDashboard = () => {
   });
 
 
+
   // songs
 const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -580,6 +633,8 @@ const audioRef = useRef(null);
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
         {/* Welcome Header */}
         <div style={cardStyle}>
+
+
           <h1
             style={{ fontSize: "28px", margin: "0 0 8px 0", color: "#2d3748" }}
           >
@@ -590,6 +645,7 @@ const audioRef = useRef(null);
           <p style={{ color: "#718096", margin: 0 }}>
             Let's crack GATE with focus and consistency!
           </p>
+
         </div>
 
         {/* Smart Planner */}
@@ -602,6 +658,7 @@ const audioRef = useRef(null);
           {tasks.map((task) => (
             <div
               key={task._id}
+
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -612,6 +669,7 @@ const audioRef = useRef(null);
                 marginBottom: "8px",
                 border: `2px solid ${task.completed ? "#68d391" : "#e2e8f0"}`,
               }}
+
             >
               <div
                 style={{ display: "flex", alignItems: "center", gap: "12px" }}
@@ -643,12 +701,15 @@ const audioRef = useRef(null);
               </div>
               <button
                 onClick={() => toggleTask(task._id)}
+
+
                 style={{
                   background: "none",
                   border: "none",
                   cursor: "pointer",
                   fontSize: "20px",
                 }}
+
               >
                 {task.completed ? (
                   <CheckCircle color="#38a169" />
@@ -700,6 +761,7 @@ const audioRef = useRef(null);
                   width: "200px",
                 }}
               />
+
               <button
                 onClick={handleAddTask}
                 style={{ ...buttonStyle, marginRight: "8px" }}
@@ -730,6 +792,7 @@ const audioRef = useRef(null);
               >
                 Cancel
               </button>
+
             </div>
           ) : (
             <button
@@ -796,6 +859,7 @@ const audioRef = useRef(null);
           </div>
 
           {/* Performance Analytics */}
+
           <div style={cardStyle}>
             <h3
               style={{
@@ -870,6 +934,7 @@ const audioRef = useRef(null);
             </div>
           </div>
 
+
           {/* Mock Tests */}
           <div style={cardStyle}>
             <h3
@@ -891,7 +956,6 @@ const audioRef = useRef(null);
             >
               🧪 Take Mock Test
             </button>
-
             <button
               style={{ ...buttonStyle, width: "100%", marginBottom: "12px" }}
               onClick={SendScore}
@@ -899,6 +963,120 @@ const audioRef = useRef(null);
               Enter Score
             </button>
           </div>
+
+          {/* PYQ Modal */}
+{showPYQModal && (
+  <div style={{
+    position: 'fixed',
+    top: 0, left: 0,
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 9999
+  }}>
+    <div style={{
+      background: 'white',
+      padding: '16px',
+      borderRadius: '8px',
+      maxWidth: '90vw',
+      maxHeight: '90vh',
+      overflow: 'auto',
+      position: 'relative'
+    }}>
+      <button
+        onClick={() => setShowPYQModal(false)}
+        style={{
+          position: 'absolute',
+          top: '8px',
+          right: '12px',
+          background: 'transparent',
+          border: 'none',
+          fontSize: '20px',
+          cursor: 'pointer'
+        }}
+      >
+        ❌
+      </button>
+      <iframe
+        src={pyqPDF}
+        width="800px"
+        height="600px"
+        style={{ border: 'none' }}
+        title="PYQ PDF"
+      />
+    </div>
+  </div>
+)}
+
+          
+          {/* Previous Papers */}
+          
+<div style={cardStyle}>
+  <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>📂 Previous Papers</h3>
+
+  <div style={{ fontSize: '13px' }}>
+    {[
+      { year: '2023', file: 'gate 2023.pdf' },
+      { year: '2022', file: 'gate 2022.pdf' },
+      { year: '2021 Set 1', file: 'gate 2021 set 1.pdf' },
+      { year: '2021 Set 2', file: 'gate 2021 set 2.pdf' },
+      { year: '2020 (CSE)', file: 'gate 2020 cse.pdf' },
+      { year: '2019 (CSE)', file: 'gate 2019 cse.pdf' },
+    ].map(({ year, file }) => {
+      const fileUrl = `/Gate_PYQs/${file}`;
+
+      return (
+        <div
+          key={year}
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}
+        >
+          <span style={{ fontWeight: '500' }}>GATE {year}</span>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              style={{
+                fontSize: '11px',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                background: '#667eea',
+                color: 'white',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+              onClick={() => {
+                setPyqPDF(fileUrl);
+                setShowPYQModal(true);
+              }}
+            >
+              👁️ View
+            </button>
+
+            <a
+              href={fileUrl}
+              download
+              style={{
+                fontSize: '11px',
+                padding: '4px 8px',
+                borderRadius: '4px',
+                background: 'white',
+                border: '1px solid #e2e8f0',
+                color: '#2d3748',
+                textDecoration: 'none'
+              }}
+            >
+              📥 Download
+            </a>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>
+
+          
+
 
           {/* Previous Papers */}
           <div style={cardStyle}>
@@ -956,6 +1134,7 @@ const audioRef = useRef(null);
               ))}
             </div>
           </div>
+
 
           {/* Your Stats */}
           <div style={cardStyle}>
@@ -1037,6 +1216,7 @@ const audioRef = useRef(null);
                 </div>
                 <div style={{ fontSize: "12px" }}>Avg. Score</div>
               </div>
+
               <div
                 style={{
                   textAlign: "center",
@@ -1055,12 +1235,14 @@ const audioRef = useRef(null);
                   {notes.length}
                 </div>
                 <div style={{ fontSize: "12px" }}>🧾 Notes Saved</div>
+
               </div>
             </div>
           </div>
 
           {/* Motivation Quote */}
           <div style={cardStyle}>
+
             <h3
               style={{
                 fontSize: "18px",
@@ -1147,10 +1329,12 @@ const audioRef = useRef(null);
                       {note.content}
                     </div>
                     
+
                   </div>
                 ))
               )}
             </div>
+
 
             {showNoteForm ? (
               <div
@@ -1161,10 +1345,12 @@ const audioRef = useRef(null);
                   marginBottom: "8px",
                 }}
               >
+
                 <input
                   type="text"
                   placeholder="Note title"
                   value={newNote.title}
+
                   onChange={(e) =>
                     setNewNote({ ...newNote, title: e.target.value })
                   }
@@ -1175,11 +1361,13 @@ const audioRef = useRef(null);
                     borderRadius: "4px",
                     border: "1px solid #e2e8f0",
                     fontSize: "14px",
+
                   }}
                 />
                 <textarea
                   placeholder="Note content"
                   value={newNote.content}
+
                   onChange={(e) =>
                     setNewNote({ ...newNote, content: e.target.value })
                   }
@@ -1213,6 +1401,7 @@ const audioRef = useRef(null);
                       background: "#e2e8f0",
                       color: "#2d3748",
                       flex: 1,
+
                     }}
                   >
                     Cancel
@@ -1220,6 +1409,7 @@ const audioRef = useRef(null);
                 </div>
               </div>
             ) : (
+
               <button
                 onClick={() => setShowNoteForm(true)}
                 style={{ ...buttonStyle, fontSize: "12px", width: "100%" }}
@@ -1371,6 +1561,7 @@ const audioRef = useRef(null);
                 <button
                   onClick={() => setIsStopwatchRunning(true)}
                   style={buttonStyle1("#4299E1")}
+
                 >
                   ▶ Start
                 </button>

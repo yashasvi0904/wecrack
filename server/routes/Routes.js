@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
 
+
+
 const {
   registerUser,
   googleLoginUser,
@@ -12,11 +14,15 @@ const {
   addTask,
   getTasks,
   deleteTask,
+  addNote,
   saveNotes,
   getNotes,
   topicstracker,
-  getTopics
+  getTopics,
+  getAnalytics,
+  updateSyllabusTopic
 } = require('../controllers/user.controller');
+
 
 const {verifyToken} = require('../middleware/auth');
 
@@ -32,6 +38,16 @@ router.post('/mockscore', verifyToken, mockscore);
 router.get('/getmarks', verifyToken, getmockscore);
 router.post('/add-task', verifyToken, addTask);
 router.get('/tasks', verifyToken, getTasks);
+
+router.post("/add-note", verifyToken, addNote);
+
+router.post("/delete-task", verifyToken, deleteTask);
+router.post('/delete-note', verifyToken, deleteNote);
+router.get('/get-analytics', verifyToken, getAnalytics);
+router.post('/update-topic', verifyToken, updateSyllabusTopic);
+
+
+
 // router.post("/save-notes", verifyToken, saveNotes);
 router.get("/get-notes", verifyToken, getNotes);
 router.post("/delete-task", verifyToken, deleteTask);
@@ -41,6 +57,7 @@ router.post('/save-notes', verifyToken, saveNotes);
 router.post("/update-syllabus-progress", verifyToken, topicstracker);
 router.get("/get-syllabus-progress", verifyToken, getTopics);
 router.post("/auth/google", googleLoginUser);
+
 
 
 
