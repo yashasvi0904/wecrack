@@ -75,7 +75,7 @@ const GateDashboard = () => {
 
   const fetchAnalytics = async () => {
     try {
-      const res = await axios.get("http://localhost:2000/get-analytics", {
+      const res = await axios.get(process.env.REACT_APP_GET_ANALYTICS, {
         withCredentials: true,
       });
       setAnalytics(res.data);
@@ -154,7 +154,7 @@ const GateDashboard = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get("http://localhost:2000/tasks", {
+      const response = await axios.get(process.env.REACT_APP_GET_TASK, {
         withCredentials: true,
       });
       setTasks(response.data);
@@ -180,7 +180,8 @@ const GateDashboard = () => {
     };
     try {
       const response = await axios.post(
-        "http://localhost:2000/add-task",
+        process.env.REACT_APP_ADD_TASK
+        ,
         newTaskItem,
         {
           withCredentials: true,
@@ -214,7 +215,8 @@ const GateDashboard = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:2000/delete-task",
+        process.env.REACT_APP_DELETE_TASK
+       ,
         {
           taskId,
         },
@@ -239,7 +241,7 @@ const GateDashboard = () => {
 
     const toggledTask = updatedTasks.find((task) => task._id === taskId);
     try {
-      await axios.post("http://localhost:2000/update-tasks", toggledTask, {
+      await axios.post(process.env.REACT_APP_TOGGLE_TASK, toggledTask, {
         withCredentials: true,
       });
     } catch (err) {
@@ -250,7 +252,7 @@ const GateDashboard = () => {
 
   const fetchNotes = async () => {
     try {
-      const res = await axios.get("http://localhost:2000/get-notes", {
+      const res = await axios.get(process.env.REACT_APP_GET_NOTES, {
         withCredentials: true,
       });
       setNotes(res.data);
@@ -298,7 +300,7 @@ const GateDashboard = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:2000/save-notes",
+        process.env.REACT_APP_ADD_NOTES,
         { notes: updatedNotes },
         { withCredentials: true }
       );
@@ -331,7 +333,7 @@ const GateDashboard = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:2000/save-notes",
+        process.env.REACT_APP_ADD_NOTES,
         { notes: [] },
         { withCredentials: true }
       );
@@ -351,7 +353,8 @@ const GateDashboard = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:2000/mockscore",
+        process.env.REACT_APP_SEND_SCORE
+        ,
         { marks: Number(score) },
         { withCredentials: true }
       );
@@ -364,7 +367,7 @@ const GateDashboard = () => {
 
   const handleMarks = async () => {
     try {
-      const response = await axios.get("http://localhost:2000/getmarks", {
+      const response = await axios.get(process.env.REACT_APP_HANDLE_MARKS, {
         withCredentials: true,
       });
       console.log(response.data);
@@ -418,7 +421,7 @@ const GateDashboard = () => {
     const fetchTopics = async () => {
       try {
         const res = await axios.get(
-          "http://localhost:2000/get-syllabus-progress",
+          process.env.REACT_APP_SYLLABUS,
           {
             withCredentials: true,
           }
@@ -442,7 +445,7 @@ const GateDashboard = () => {
 
     try {
       await axios.post(
-        "http://localhost:2000/update-syllabus-progress",
+       process.env.REACT_APP_ADD_TOPICS,
         {
           branch: branch.split(" - ")[0],
           completedTopics: updatedTopics,
@@ -462,7 +465,7 @@ const GateDashboard = () => {
 
     try {
       await axios.post(
-        "http://localhost:2000/update-syllabus-progress",
+       process.env.REACT_APP_DELETE_TOPICS,
         {
           completedTopics: updated,
           branch: branch.split(" - ")[0],
