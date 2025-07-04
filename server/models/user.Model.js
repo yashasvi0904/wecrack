@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema({
     completed: { type: Boolean, default: false }
   }
   ],
+
 mockscore: [{ type: Number }],
    notes: [
   {
@@ -25,6 +26,7 @@ mockscore: [{ type: Number }],
     content: String
   }
 ],
+
 syllabus: [
   {
     subject: String,
@@ -33,6 +35,9 @@ syllabus: [
   }
 ],
 activityLog: [String]
+
+
+  topics: [{ type: String }],
 
 
   

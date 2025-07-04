@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { loginWithGoogle } from "../FireBase";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
@@ -28,20 +28,10 @@ export default function LoginScreen() {
     if (!validateForm()) return;
     
     setIsLoading(true);
-    try {
-      const url = process.env.REACT_APP_LOGIN_USER;
-      const payload = isSignUp
-        ? { email, password, name }
-        : { email, password };
-      const response = await axios.post(url, payload, { withCredentials: true });
-
-      console.log(response.data); // optional: handle success response
-      navigate('/dashboard'); // redirect to dashboard or any page
-    } catch (error) {
-      console.error("Login/Signup failed:", error.response?.data || error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+    setIsLoading(false);
+    console.log(isSignUp ?
+       'Sign Up:' : 'Login:', { email, password, ...(isSignUp && { name }), rememberMe });
   };
 
   const inputStyle = (error) => ({
@@ -247,6 +237,57 @@ export default function LoginScreen() {
             )}
           </button>
         </form>
+
+        <div style={{ marginTop: "15px", textAlign: "center" }}>
+          <button
+            onClick={async () => {
+              if (isLoading) return;
+              setIsLoading(true);
+              try {
+                const result = await loginWithGoogle(); // This should return user object from Firebase
+                const idToken = await result.user.getIdToken();
+
+                const response = await fetch(process.env.REACT_APP_GOOGLE_AUTH_URI, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  credentials: "include",
+                  body: JSON.stringify({ idToken }),
+                });
+
+                const data = await response.json();
+                if (response.ok) {
+                  console.log("Google login successful", data);
+                  if (data.role === "admin") {
+                    navigate("/admin-dashboard");
+                  } else {
+                    navigate("/dashboard");
+                  }
+                } else {
+                  console.error("Google login failed", data.message);
+                }
+              } catch (error) {
+                console.error("Google Sign-In Error:", error);
+              } finally {
+                setIsLoading(false);
+              }
+            }}
+            disabled={isLoading}
+            style={{
+              width: "100%",
+              padding: "10px",
+              backgroundColor: "#4285F4",
+              color: "#ECEFCA",
+              border: "none",
+              borderRadius: "6px",
+              fontSize: "16px",
+              fontWeight: "600",
+              marginTop: "10px",
+              cursor: "pointer",
+            }}
+          >
+            {isLoading ? "Signing in..." : "Sign in with Google"}
+          </button>
+        </div>
 
         <div style={{
           textAlign: 'center',
