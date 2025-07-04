@@ -12,6 +12,7 @@ const {
   mockscore,
   getmockscore,
   addTask,
+  updatetasks,
   getTasks,
   deleteTask,
   addNote,
@@ -38,6 +39,7 @@ router.get('/userdetails', verifyToken, userdetails);
 router.post('/mockscore', verifyToken, mockscore);
 router.get('/getmarks', verifyToken, getmockscore);
 router.post('/add-task', verifyToken, addTask);
+router.post('/update-tasks', verifyToken, updatetasks);
 router.get('/tasks', verifyToken, getTasks);
 
 router.post("/add-note", verifyToken, addNote);

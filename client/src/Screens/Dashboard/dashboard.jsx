@@ -1,4 +1,4 @@
-import  { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import {
   Plus,
@@ -23,12 +23,11 @@ import {
 } from "recharts";
 
 const GateDashboard = () => {
-
   const [analytics, setAnalytics] = useState({
-  subjectsCompleted: 0,
-  accuracy: 0,
-  bestStreak: 0,
-  consistency: 0
+    subjectsCompleted: 0,
+    accuracy: 0,
+    bestStreak: 0,
+    consistency: 0,
   });
   const quoteList = [
     "Success is not final, failure is not fatal: It is the courage to continue that counts. – Winston Churchill",
@@ -40,13 +39,11 @@ const GateDashboard = () => {
     "Push yourself, because no one else is going to do it for you.",
     "Great things never come from comfort zones.",
     "Dream it. Wish it. Do it.",
-    "Success doesn’t just find you. You have to go out and get it."
+    "Success doesn’t just find you. You have to go out and get it.",
   ];
-  
 
-  const [pyqPDF, setPyqPDF] = useState('');
+  const [pyqPDF, setPyqPDF] = useState("");
   const [showPYQModal, setShowPYQModal] = useState(false);
-  
 
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ title: "", content: "" });
@@ -60,41 +57,32 @@ const GateDashboard = () => {
     title: "",
     time: "",
   });
-const [showSyllabus, setShowSyllabus] = useState(false);
-const [showSyllabusModal, setShowSyllabusModal] = useState(false);
-const [syllabusPDF, setSyllabusPDF] = useState("");
-const [branch, setBranch] = useState("CSE");
-const [mockTestPDF, setMockTestPDF] = useState("");
-const [showMockTestModal, setShowMockTestModal] = useState(false);
-const [mockTestMarks, setMockTestMarks] = useState([]);
-const [currentQuote, setCurrentQuote] = useState(
-  quoteList[Math.floor(Math.random() * quoteList.length)]
-);
+  const [showSyllabus, setShowSyllabus] = useState(false);
+  const [showSyllabusModal, setShowSyllabusModal] = useState(false);
+  const [syllabusPDF, setSyllabusPDF] = useState("");
+  const [branch, setBranch] = useState("CSE");
+  const [mockTestPDF, setMockTestPDF] = useState("");
+  const [showMockTestModal, setShowMockTestModal] = useState(false);
+  const [mockTestMarks, setMockTestMarks] = useState([]);
+  const [currentQuote, setCurrentQuote] = useState(
+    quoteList[Math.floor(Math.random() * quoteList.length)]
+  );
 
-const fetchMotivationalQuote = () => {
-  const randomIndex = Math.floor(Math.random() * quoteList.length);
-  setCurrentQuote(quoteList[randomIndex]);
-};
+  const fetchMotivationalQuote = () => {
+    const randomIndex = Math.floor(Math.random() * quoteList.length);
+    setCurrentQuote(quoteList[randomIndex]);
+  };
 
-
-
-const fetchAnalytics = async () => {
-  try {
-    const res = await axios.get("http://localhost:2000/get-analytics", {
-      withCredentials: true
-    });
-    setAnalytics(res.data);
-  } catch (err) {
-    console.error("Failed to fetch analytics:", err);
-  }
-};
-
-
-  
-  
- 
-
-
+  const fetchAnalytics = async () => {
+    try {
+      const res = await axios.get("http://localhost:2000/get-analytics", {
+        withCredentials: true,
+      });
+      setAnalytics(res.data);
+    } catch (err) {
+      console.error("Failed to fetch analytics:", err);
+    }
+  };
 
   const [stopwatchTime, setStopwatchTime] = useState(0);
   const [isStopwatchRunning, setIsStopwatchRunning] = useState(false);
@@ -105,8 +93,6 @@ const fetchAnalytics = async () => {
   const [timerTime, setTimerTime] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const timerInterval = useRef(null);
-
-
 
   const [topicList, setTopicList] = useState([]);
   const [newTopic, setNewTopic] = useState("");
@@ -148,7 +134,6 @@ const fetchAnalytics = async () => {
   const userdetails = async () => {
     try {
       const response = await axios.get(process.env.REACT_APP_USER_DETAILS, {
-
         withCredentials: true,
       });
       setUser(response.data.user.name || "");
@@ -156,7 +141,6 @@ const fetchAnalytics = async () => {
       console.error("Error fetching user details:", error);
     }
   };
-
 
   useEffect(() => {
     userdetails();
@@ -171,10 +155,7 @@ const fetchAnalytics = async () => {
   const fetchTasks = async () => {
     try {
       const response = await axios.get("http://localhost:2000/tasks", {
-
-
         withCredentials: true,
-
       });
       setTasks(response.data);
     } catch (err) {
@@ -195,7 +176,6 @@ const fetchAnalytics = async () => {
       subject,
       title,
 
-
       completed: false,
     };
     try {
@@ -208,14 +188,12 @@ const fetchAnalytics = async () => {
       );
       alert(response.data.message || "Task added successfully");
       setTasks((prev) => [...(prev || []), { ...newTaskItem, id: Date.now() }]);
-
     } catch (err) {
       console.error("Error adding task:", err);
       alert("Failed to add task.");
     }
   };
   const handleDeleteTask = async () => {
-
     if (tasks.length === 0) {
       alert("No tasks to delete.");
       return;
@@ -261,7 +239,7 @@ const fetchAnalytics = async () => {
 
     const toggledTask = updatedTasks.find((task) => task._id === taskId);
     try {
-      await axios.post("http://localhost:2000/update-task", toggledTask, {
+      await axios.post("http://localhost:2000/update-tasks", toggledTask, {
         withCredentials: true,
       });
     } catch (err) {
@@ -304,35 +282,35 @@ const fetchAnalytics = async () => {
   // };
 
   const handleAddNote = async () => {
-  if (!newNote.title.trim() || !newNote.content.trim()) {
-    alert("Both title and content are required.");
-    return;
-  }
+    if (!newNote.title.trim() || !newNote.content.trim()) {
+      alert("Both title and content are required.");
+      return;
+    }
 
-  const updatedNotes = [
-    ...notes,
-    {
-      title: newNote.title,
-      content: newNote.content,
-      id: Date.now(), // Add some unique ID client-side
-    },
-  ];
+    const updatedNotes = [
+      ...notes,
+      {
+        title: newNote.title,
+        content: newNote.content,
+        id: Date.now(), // Add some unique ID client-side
+      },
+    ];
 
-  try {
-    const res = await axios.post(
-      "http://localhost:2000/save-notes",
-      { notes: updatedNotes },
-      { withCredentials: true }
-    );
-    setNotes(res.data.notes); // Optional, can skip and use `updatedNotes`
-    setNewNote({ title: "", content: "" });
-    setShowNoteForm(false);
-    alert("Note added!");
-  } catch (err) {
-    console.error("Failed to save notes:", err);
-    alert("Something went wrong.");
-  }
-};
+    try {
+      const res = await axios.post(
+        "http://localhost:2000/save-notes",
+        { notes: updatedNotes },
+        { withCredentials: true }
+      );
+      setNotes(res.data.notes); // Optional, can skip and use `updatedNotes`
+      setNewNote({ title: "", content: "" });
+      setShowNoteForm(false);
+      alert("Note added!");
+    } catch (err) {
+      console.error("Failed to save notes:", err);
+      alert("Something went wrong.");
+    }
+  };
   // const handleDeleteNote = async (noteId) => {
   //   try {
   //     const res = await axios.post(
@@ -349,20 +327,20 @@ const fetchAnalytics = async () => {
   // };
 
   const handleDeleteNote = async (noteId) => {
-  const updatedNotes = notes.filter((note) => note.id !== noteId);
+    const updatedNotes = notes.filter((note) => note.id !== noteId);
 
-  try {
-    const res = await axios.post(
-      "http://localhost:2000/save-notes",
-      { notes: [] },
-      { withCredentials: true }
-    );
-    setNotes(res.data.notes); // Or just setNotes(updatedNotes)
-  } catch (err) {
-    console.error("Failed to save updated notes:", err);
-    alert("Delete failed.");
-  }
-};
+    try {
+      const res = await axios.post(
+        "http://localhost:2000/save-notes",
+        { notes: [] },
+        { withCredentials: true }
+      );
+      setNotes(res.data.notes); // Or just setNotes(updatedNotes)
+    } catch (err) {
+      console.error("Failed to save updated notes:", err);
+      alert("Delete failed.");
+    }
+  };
 
   const SendScore = async () => {
     const score = prompt("Enter your score:");
@@ -384,7 +362,7 @@ const fetchAnalytics = async () => {
     }
   };
 
-   const handleMarks = async () => {
+  const handleMarks = async () => {
     try {
       const response = await axios.get("http://localhost:2000/getmarks", {
         withCredentials: true,
@@ -396,33 +374,43 @@ const fetchAnalytics = async () => {
       console.error("Error fetching marks:", err);
     }
   };
-  
 
-  const cardStyle = { background: 'white', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '16px' };
-  const buttonStyle = { background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white', border: 'none', borderRadius: '8px', padding: '10px 16px', cursor: 'pointer', fontSize: '14px', fontWeight: '500' };
-
+  const cardStyle = {
+    background: "white",
+    borderRadius: "12px",
+    padding: "20px",
+    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+    marginBottom: "16px",
+  };
+  const buttonStyle = {
+    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    padding: "10px 16px",
+    cursor: "pointer",
+    fontSize: "14px",
+    fontWeight: "500",
+  };
 
   // Handles GATE branch change, fetches PDF, converts to HTML (mock), and sends to backend
   const handleBranchChange = async (e) => {
     const selected = e.target.value;
     setBranch(selected);
 
-    const branchCode = selected.split(' - ')[0];
-    const pdfPath = `/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, '');
+    const branchCode = selected.split(" - ")[0];
+    const pdfPath =
+      `/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, "");
     setSyllabusPDF(pdfPath);
     setShowSyllabusModal(true);
-    
+
     try {
       const response = await fetch(pdfPath);
       const blob = await response.blob();
-
-      
     } catch (err) {
       console.error("Error processing syllabus PDF:", err);
     }
   };
-
-  
 
   // Toggle the completed status of a task and update backend
   // Toggle the completed status of a task and update backend
@@ -485,7 +473,6 @@ const fetchAnalytics = async () => {
       console.error("Failed to sync deleted topic:", err);
     }
   };
-  
 
   // STopWatch
   useEffect(() => {
@@ -528,11 +515,18 @@ const fetchAnalytics = async () => {
     cursor: "pointer",
     transition: "background-color 0.3s ease",
   });
-
-
+  const inputStyle = {
+    backgroundColor: "#F2F2F2",
+    border: "2px solid #EAE4D5",
+    borderRadius: "8px",
+    padding: "12px 16px",
+    fontSize: "14px",
+    outline: "none",
+    transition: "border-color 0.3s ease",
+  };
 
   // songs
-const audioRef = useRef(null);
+  const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSongIndex, setCurrentSongIndex] = useState(0);
 
@@ -571,45 +565,42 @@ const audioRef = useRef(null);
   };
 
   // Spotify
-  
+
   return (
     <div
       style={{
-        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        background: "linear-gradient(135deg, #F2F2F2 0%, #EAE4D5 100%)",
         minHeight: "100vh",
         padding: "20px",
       }}
     >
       <audio ref={audioRef} src={songs[currentSongIndex].file} loop />
 
+      {/* Music Player */}
       <div
         style={{
           position: "fixed",
           top: "20px",
           right: "20px",
-          background: "#EAE4D5",
-          color: "#000000",
-          padding: "14px 18px",
-          borderRadius: "14px",
-          boxShadow: "0 4px 10px rgba(0, 0, 0, 0.2)",
+          backgroundColor: "#EAE4D5",
+          padding: "16px 20px",
+          borderRadius: "16px",
+          boxShadow: "0 6px 20px rgba(0, 0, 0, 0.1)",
           zIndex: 9999,
           display: "flex",
           alignItems: "center",
-          gap: "14px",
+          gap: "16px",
+          border: "1px solid #B6B09F",
         }}
       >
-        {/* Song Selector */}
         <select
           value={currentSongIndex}
           onChange={(e) => switchSong(Number(e.target.value))}
           style={{
-            background: "#F2F2F2",
-            color: "#000000",
-            padding: "6px 10px",
-            borderRadius: "6px",
-            border: "1px solid #B6B09F",
-            fontSize: "14px",
-            outline: "none",
+            ...inputStyle,
+            width: "140px",
+            fontSize: "13px",
+            padding: "8px 12px",
           }}
         >
           {songs.map((song, index) => (
@@ -618,80 +609,88 @@ const audioRef = useRef(null);
             </option>
           ))}
         </select>
-
-        {/* Play/Pause Button */}
         <button
           onClick={togglePlay}
           style={{
-            background: isPlaying ? "#B6B09F" : "#000000",
-            border: "none",
-            padding: "8px 14px",
-            borderRadius: "8px",
-            color: "#F2F2F2",
-            cursor: "pointer",
-            fontSize: "14px",
+            ...buttonStyle,
+            backgroundColor: isPlaying ? "#000000" : "#B6B09F",
+            color: isPlaying ? "#F2F2F2" : "#000000",
+            padding: "8px 16px",
+            fontSize: "13px",
           }}
         >
-          {isPlaying ? "Pause" : "Play"}
+          {isPlaying ? "⏸️" : "▶️"}
         </button>
       </div>
-      <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-        {/* Welcome Header */}
+
+      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+        {/* Header */}
         <div style={cardStyle}>
-
-
           <h1
-            style={{ fontSize: "28px", margin: "0 0 8px 0", color: "#2d3748" }}
+            style={{
+              fontSize: "32px",
+              margin: "0 0 8px 0",
+              color: "#000000",
+              fontWeight: "700",
+            }}
           >
             👋 Welcome back, {user1}!
           </h1>
-
-          {/* <h1 style={{ fontSize: '28px', margin: '0 0 8px 0', color: '#2d3748' }}>👋 Welcome Back {user1 }!</h1> */}
-          <p style={{ color: "#718096", margin: 0 }}>
+          <p
+            style={{
+              color: "#B6B09F",
+              margin: 0,
+              fontSize: "16px",
+              fontWeight: "500",
+            }}
+          >
             Let's crack GATE with focus and consistency!
           </p>
-
         </div>
 
         {/* Smart Planner */}
         <div style={cardStyle}>
           <h2
-            style={{ fontSize: "20px", margin: "0 0 16px 0", color: "#2d3748" }}
+            style={{
+              fontSize: "22px",
+              margin: "0 0 20px 0",
+              color: "#000000",
+              fontWeight: "600",
+            }}
           >
             🧠 Your Smart Planner
           </h2>
           {tasks.map((task) => (
             <div
               key={task._id}
-
               style={{
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "space-between",
-                padding: "12px",
-                background: task.completed ? "#f0fff4" : "#fafafa",
-                borderRadius: "8px",
-                marginBottom: "8px",
-                border: `2px solid ${task.completed ? "#68d391" : "#e2e8f0"}`,
+                padding: "16px",
+                backgroundColor: task.completed ? "#EAE4D5" : "#F2F2F2",
+                borderRadius: "12px",
+                marginBottom: "12px",
+                border: `2px solid ${task.completed ? "#B6B09F" : "#EAE4D5"}`,
+                transition: "all 0.3s ease",
               }}
-
             >
               <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
+                style={{ display: "flex", alignItems: "center", gap: "16px" }}
               >
                 <span
                   style={{
-                    background:
+                    backgroundColor:
                       task.subject === "DSA"
-                        ? "#3182ce"
+                        ? "#000000"
                         : task.subject === "OS"
-                        ? "#38a169"
-                        : "#ed8936",
-                    color: "white",
-                    padding: "4px 8px",
-                    borderRadius: "4px",
+                        ? "#B6B09F"
+                        : "#EAE4D5",
+                    color: task.subject === "DSA" ? "#F2F2F2" : "#000000",
+                    padding: "6px 12px",
+                    borderRadius: "8px",
                     fontSize: "12px",
-                    fontWeight: "bold",
+                    fontWeight: "600",
                   }}
                 >
                   📘 {task.subject}
@@ -699,6 +698,8 @@ const audioRef = useRef(null);
                 <span
                   style={{
                     textDecoration: task.completed ? "line-through" : "none",
+                    color: "#000000",
+                    fontWeight: "500",
                   }}
                 >
                   {task.title}
@@ -706,20 +707,17 @@ const audioRef = useRef(null);
               </div>
               <button
                 onClick={() => toggleTask(task._id)}
-
-
                 style={{
                   background: "none",
                   border: "none",
                   cursor: "pointer",
-                  fontSize: "20px",
+                  fontSize: "24px",
                 }}
-
               >
                 {task.completed ? (
-                  <CheckCircle color="#38a169" />
+                  <CheckCircle color="#B6B09F" />
                 ) : (
-                  <Circle color="#a0aec0" />
+                  <Circle color="#B6B09F" />
                 )}
               </button>
             </div>
@@ -728,101 +726,95 @@ const audioRef = useRef(null);
           {showTaskForm ? (
             <div
               style={{
-                background: "#f7fafc",
-                padding: "16px",
-                borderRadius: "8px",
-                marginTop: "12px",
+                backgroundColor: "#EAE4D5",
+                padding: "20px",
+                borderRadius: "12px",
+                marginTop: "16px",
               }}
             >
-              <select
-                value={newTask.subject}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, subject: e.target.value })
-                }
-                style={{
-                  padding: "8px",
-                  marginRight: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #e2e8f0",
-                }}
+              <div
+                style={{ display: "flex", gap: "12px", marginBottom: "12px" }}
               >
-                {subjects.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
-              </select>
-              <input
-                placeholder="Task title"
-                value={newTask.title}
-                onChange={(e) =>
-                  setNewTask({ ...newTask, title: e.target.value })
-                }
-                style={{
-                  padding: "8px",
-                  marginRight: "8px",
-                  borderRadius: "4px",
-                  border: "1px solid #e2e8f0",
-                  width: "200px",
-                }}
-              />
-
-              <button
-                onClick={handleAddTask}
-                style={{ ...buttonStyle, marginRight: "8px" }}
-              >
-                Add
-              </button>
-              <button
-                onClick={handleDeleteTask}
-                style={{
-                  marginTop: "12px",
-                  padding: "10px 16px",
-                  background: "#e53e3e",
-                  color: "white",
-                  borderRadius: "8px",
-                  fontWeight: "bold",
-                }}
-              >
-                🗑️ Delete Task
-              </button>
-
-              <button
-                onClick={() => setShowTaskForm(false)}
-                style={{
-                  ...buttonStyle,
-                  background: "#e2e8f0",
-                  color: "#2d3748",
-                }}
-              >
-                Cancel
-              </button>
-
+                <select
+                  value={newTask.subject}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, subject: e.target.value })
+                  }
+                  style={{ ...inputStyle, flex: 1 }}
+                >
+                  {subjects.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  placeholder="Task title"
+                  value={newTask.title}
+                  onChange={(e) =>
+                    setNewTask({ ...newTask, title: e.target.value })
+                  }
+                  style={{ ...inputStyle, flex: 2 }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: "12px" }}>
+                <button
+                  onClick={handleAddTask}
+                  style={{ ...buttonStyle, flex: 1 }}
+                >
+                  Add Task
+                </button>
+                <button
+                  onClick={handleDeleteTask}
+                  style={{
+                    ...buttonStyle,
+                    backgroundColor: "#000000",
+                    color: "#F2F2F2",
+                    flex: 1,
+                  }}
+                >
+                  🗑️ Delete Completed
+                </button>
+                <button
+                  onClick={() => setShowTaskForm(false)}
+                  style={{
+                    ...buttonStyle,
+                    backgroundColor: "#F2F2F2",
+                    color: "#000000",
+                    border: "2px solid #B6B09F",
+                    flex: 1,
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           ) : (
             <button
               onClick={() => setShowTaskForm(true)}
-              style={{ ...buttonStyle, marginTop: "12px" }}
+              style={{ ...buttonStyle, marginTop: "16px" }}
             >
-              <Plus size={16} style={{ marginRight: "8px" }} /> Add Custom Task
+              <Plus size={18} style={{ marginRight: "8px" }} /> Add Custom Task
             </button>
           )}
         </div>
 
+        {/* Grid Layout */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-            gap: "16px",
+            gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
+            gap: "20px",
           }}
         >
           {/* Syllabus Tracker */}
           <div style={cardStyle}>
             <h3
               style={{
-                fontSize: "18px",
-                margin: "0 0 12px 0",
-                color: "#2d3748",
+                fontSize: "20px",
+                margin: "0 0 16px 0",
+                color: "#000000",
+                fontWeight: "600",
               }}
             >
               📚 Syllabus
@@ -831,11 +823,9 @@ const audioRef = useRef(null);
               value={branch}
               onChange={handleBranchChange}
               style={{
-                padding: "8px",
-                marginBottom: "12px",
-                borderRadius: "4px",
-                border: "1px solid #e2e8f0",
+                ...inputStyle,
                 width: "100%",
+                marginBottom: "16px",
               }}
             >
               {branches.map((b) => (
@@ -855,204 +845,230 @@ const audioRef = useRef(null);
                 );
                 setShowSyllabusModal(true);
               }}
-              style={buttonStyle}
+              style={{ ...buttonStyle, width: "100%" }}
             >
-              <BookOpen size={16} style={{ marginRight: "8px" }} /> View
+              <BookOpen size={18} style={{ marginRight: "8px" }} /> View
               Syllabus
             </button>
-            {/* TODO: Add checkbox and notes UI for each syllabus topic from backend */}
           </div>
 
-<div style={cardStyle}>
-  <h3
-    style={{
-      fontSize: "18px",
-      margin: "0 0 12px 0",
-      color: "#2d3748",
-    }}
-  >
-    📊 Performance Analytics
-  </h3>
-
- <div style={{ marginTop: "12px" }}>
-  {/* <h4 style={{ fontSize: "16px", marginBottom: "8px" }}>📋 Mock Test Summary</h4> */}
-  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
-    <thead>
-      <tr style={{ background: "#f7fafc", color: "#4a5568" }}>
-        <th style={{ padding: "8px", border: "1px solid #e2e8f0" }}>Test #</th>
-        <th style={{ padding: "8px", border: "1px solid #e2e8f0" }}>Score</th>
-      </tr>
-    </thead>
-    <tbody>
-      {mockTestMarks.slice(-3).map((score, index) => (
-        <tr key={index}>
-          <td style={{ padding: "8px", border: "1px solid #e2e8f0", textAlign: "center" }}>
-            {mockTestMarks.length - 4 + index + 1}
-          </td>
-          <td style={{ padding: "8px", border: "1px solid #e2e8f0", textAlign: "center" }}>
-            {typeof score === "number" && !isNaN(score) ? `${score}%` : "N/A"}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
-</div>
-
+          {/* Performance Analytics */}
+          <div style={cardStyle}>
+            <h3
+              style={{
+                fontSize: "20px",
+                margin: "0 0 16px 0",
+                color: "#000000",
+                fontWeight: "600",
+              }}
+            >
+              📊 Performance Analytics
+            </h3>
+            <div
+              style={{
+                backgroundColor: "#EAE4D5",
+                borderRadius: "12px",
+                padding: "16px",
+              }}
+            >
+              <table
+                style={{
+                  width: "100%",
+                  borderCollapse: "collapse",
+                  fontSize: "14px",
+                }}
+              >
+                <thead>
+                  <tr
+                    style={{
+                      backgroundColor: "#B6B09F",
+                      color: "#000000",
+                    }}
+                  >
+                    <th
+                      style={{
+                        padding: "12px",
+                        borderRadius: "8px 0 0 8px",
+                        fontWeight: "600",
+                      }}
+                    >
+                      Test #
+                    </th>
+                    <th
+                      style={{
+                        padding: "12px",
+                        borderRadius: "0 8px 8px 0",
+                        fontWeight: "600",
+                      }}
+                    >
+                      Score
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {mockTestMarks.slice(-3).map((score, index) => (
+                    <tr
+                      key={index}
+                      style={{
+                        backgroundColor:
+                          index % 2 === 0 ? "#F2F2F2" : "#EAE4D5",
+                      }}
+                    >
+                      <td
+                        style={{
+                          padding: "12px",
+                          textAlign: "center",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {mockTestMarks.length - 4 + index + 1}
+                      </td>
+                      <td
+                        style={{
+                          padding: "12px",
+                          textAlign: "center",
+                          fontWeight: "500",
+                        }}
+                      >
+                        {typeof score === "number" && !isNaN(score)
+                          ? `${score}%`
+                          : "N/A"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           {/* Mock Tests */}
           <div style={cardStyle}>
             <h3
               style={{
-                fontSize: "18px",
-                margin: "0 0 12px 0",
-                color: "#2d3748",
+                fontSize: "20px",
+                margin: "0 0 16px 0",
+                color: "#000000",
+                fontWeight: "600",
               }}
             >
               🧪 Mock Tests
             </h3>
-            <button
-              style={{ ...buttonStyle, width: "100%", marginBottom: "12px" }}
-              onClick={() => {
-                const randomIndex = Math.floor(Math.random() * 5) + 1;
-                setMockTestPDF(`/Gate_Mock/GATE_MockTest_${randomIndex}.pdf`);
-                setShowMockTestModal(true);
-              }}
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
             >
-              🧪 Take Mock Test
-            </button>
-            <button
-              style={{ ...buttonStyle, width: "100%", marginBottom: "12px" }}
-              onClick={SendScore}
-            >
-              Enter Score
-            </button>
+              <button
+                onClick={() => {
+                  const randomIndex = Math.floor(Math.random() * 5) + 1;
+                  setMockTestPDF(`/Gate_Mock/GATE_MockTest_${randomIndex}.pdf`);
+                  setShowMockTestModal(true);
+                }}
+                style={{ ...buttonStyle, width: "100%" }}
+              >
+                🧪 Take Mock Test
+              </button>
+              <button
+                onClick={SendScore}
+                style={{
+                  ...buttonStyle,
+                  backgroundColor: "#000000",
+                  color: "#F2F2F2",
+                  width: "100%",
+                }}
+              >
+                📝 Enter Score
+              </button>
+            </div>
           </div>
 
-          {/* PYQ Modal */}
-{showPYQModal && (
-  <div style={{
-    position: 'fixed',
-    top: 0, left: 0,
-    width: '100vw',
-    height: '100vh',
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 9999
-  }}>
-    <div style={{
-      background: 'white',
-      padding: '16px',
-      borderRadius: '8px',
-      maxWidth: '90vw',
-      maxHeight: '90vh',
-      overflow: 'auto',
-      position: 'relative'
-    }}>
-      <button
-        onClick={() => setShowPYQModal(false)}
-        style={{
-          position: 'absolute',
-          top: '8px',
-          right: '12px',
-          background: 'transparent',
-          border: 'none',
-          fontSize: '20px',
-          cursor: 'pointer'
-        }}
-      >
-        ❌
-      </button>
-      <iframe
-        src={pyqPDF}
-        width="800px"
-        height="600px"
-        style={{ border: 'none' }}
-        title="PYQ PDF"
-      />
-    </div>
-  </div>
-)}
-
-          
           {/* Previous Papers */}
-          
-<div style={cardStyle}>
-  <h3 style={{ fontSize: '18px', margin: '0 0 12px 0', color: '#2d3748' }}>📂 Previous Papers</h3>
-
-  <div style={{ fontSize: '13px' }}>
-    {[
-      { year: '2023', file: 'gate 2023.pdf' },
-      { year: '2022', file: 'gate 2022.pdf' },
-      { year: '2021 Set 1', file: 'gate 2021 set 1.pdf' },
-      { year: '2021 Set 2', file: 'gate 2021 set 2.pdf' },
-      { year: '2020 (CSE)', file: 'gate 2020 cse.pdf' },
-      { year: '2019 (CSE)', file: 'gate 2019 cse.pdf' },
-    ].map(({ year, file }) => {
-      const fileUrl = `/Gate_PYQs/${file}`;
-
-      return (
-        <div
-          key={year}
-          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}
-        >
-          <span style={{ fontWeight: '500' }}>GATE {year}</span>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
+          <div style={cardStyle}>
+            <h3
               style={{
-                fontSize: '11px',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                background: '#667eea',
-                color: 'white',
-                border: 'none',
-                cursor: 'pointer'
-              }}
-              onClick={() => {
-                setPyqPDF(fileUrl);
-                setShowPYQModal(true);
+                fontSize: "20px",
+                margin: "0 0 16px 0",
+                color: "#000000",
+                fontWeight: "600",
               }}
             >
-              👁️ View
-            </button>
-
-            <a
-              href={fileUrl}
-              download
-              style={{
-                fontSize: '11px',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                background: 'white',
-                border: '1px solid #e2e8f0',
-                color: '#2d3748',
-                textDecoration: 'none'
-              }}
+              📂 Previous Papers
+            </h3>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
             >
-              📥 Download
-            </a>
+              {[
+                { year: "2023", file: "gate 2023.pdf" },
+                { year: "2022", file: "gate 2022.pdf" },
+                { year: "2021 Set 1", file: "gate 2021 set 1.pdf" },
+                { year: "2021 Set 2", file: "gate 2021 set 2.pdf" },
+                { year: "2020 (CSE)", file: "gate 2020 cse.pdf" },
+                { year: "2019 (CSE)", file: "gate 2019 cse.pdf" },
+              ].map(({ year, file }) => {
+                const fileUrl = `/Gate_PYQs/${file}`;
+                return (
+                  <div
+                    key={year}
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      padding: "12px",
+                      backgroundColor: "#EAE4D5",
+                      borderRadius: "8px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontWeight: "600",
+                        color: "#000000",
+                      }}
+                    >
+                      GATE {year}
+                    </span>
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => {
+                          setPyqPDF(fileUrl);
+                          setShowPYQModal(true);
+                        }}
+                        style={{
+                          ...buttonStyle,
+                          fontSize: "12px",
+                          padding: "6px 12px",
+                          backgroundColor: "#000000",
+                          color: "#F2F2F2",
+                        }}
+                      >
+                        👁️ View
+                      </button>
+                      <a
+                        href={fileUrl}
+                        download
+                        style={{
+                          ...buttonStyle,
+                          fontSize: "12px",
+                          padding: "6px 12px",
+                          backgroundColor: "#B6B09F",
+                          color: "#000000",
+                          textDecoration: "none",
+                        }}
+                      >
+                        📥 Download
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      );
-    })}
-  </div>
-</div>
-
-          
-
-
-          
-
 
           {/* Your Stats */}
           <div style={cardStyle}>
             <h3
               style={{
-                fontSize: "18px",
-                margin: "0 0 12px 0",
-                color: "#2d3748",
+                fontSize: "20px",
+                margin: "0 0 16px 0",
+                color: "#000000",
+                fontWeight: "600",
               }}
             >
               🧑‍🎓 Your Stats
@@ -1061,140 +1077,107 @@ const audioRef = useRef(null);
               style={{
                 display: "grid",
                 gridTemplateColumns: "1fr 1fr",
-                gap: "8px",
+                gap: "12px",
               }}
             >
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "8px",
-                  background: "#f7fafc",
-                  borderRadius: "6px",
-                }}
-              >
+              {[
+                {
+                  label: "Total Tests",
+                  value: mockTestMarks.length,
+                  color: "#B6B09F",
+                },
+                {
+                  label: "Highest Score",
+                  value:
+                    mockTestMarks.length > 0 ? Math.max(...mockTestMarks) : 0,
+                  color: "#000000",
+                },
+                {
+                  label: "Average Score",
+                  value:
+                    mockTestMarks.length > 0
+                      ? Math.round(
+                          mockTestMarks.reduce((a, b) => a + b, 0) /
+                            mockTestMarks.length
+                        )
+                      : 0,
+                  color: "#EAE4D5",
+                },
+                { label: "Notes Saved", value: notes.length, color: "#B6B09F" },
+              ].map((stat, index) => (
                 <div
+                  key={index}
                   style={{
-                    fontSize: "20px",
-                    fontWeight: "bold",
-                    color: "#3182ce",
+                    textAlign: "center",
+                    padding: "16px",
+                    backgroundColor: "#EAE4D5",
+                    borderRadius: "12px",
+                    border: "2px solid #B6B09F",
                   }}
                 >
-                  {mockTestMarks.length}
+                  <div
+                    style={{
+                      fontSize: "24px",
+                      fontWeight: "700",
+                      color: "#000000",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    {stat.value}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "12px",
+                      color: "#B6B09F",
+                      fontWeight: "600",
+                    }}
+                  >
+                    {stat.label}
+                  </div>
                 </div>
-                <div style={{ fontSize: "12px" }}>Total Tests</div>
-              </div>
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "8px",
-                  background: "#f7fafc",
-                  borderRadius: "6px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "bold",
-                    color: "#38a169",
-                  }}
-                >
-                  {mockTestMarks.length > 0 ? Math.max(...mockTestMarks) : 0}
-                </div>
-                <div style={{ fontSize: "12px" }}>Highest Marks</div>
-              </div>
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "8px",
-                  background: "#f7fafc",
-                  borderRadius: "6px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "bold",
-                    color: "#ed8936",
-                  }}
-                >
-                  {mockTestMarks.length > 0
-                    ? Math.round(
-                        mockTestMarks.reduce((a, b) => a + b, 0) /
-                          mockTestMarks.length
-                      )
-                    : 0}
-                </div>
-                <div style={{ fontSize: "12px" }}>Avg. Score</div>
-              </div>
-
-              <div
-                style={{
-                  textAlign: "center",
-                  padding: "8px",
-                  background: "#f7fafc",
-                  borderRadius: "6px",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: "20px",
-                    fontWeight: "bold",
-                    color: "#9f7aea",
-                  }}
-                >
-                  {notes.length}
-                </div>
-                <div style={{ fontSize: "12px" }}>🧾 Notes Saved</div>
-
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* Motivation Quote */}
+          {/* Daily Motivation */}
           <div style={cardStyle}>
-
             <h3
               style={{
-                fontSize: "18px",
-                margin: "0 0 12px 0",
-                color: "#2d3748",
+                fontSize: "20px",
+                margin: "0 0 16px 0",
+                color: "#000000",
+                fontWeight: "600",
               }}
             >
               💬 Daily Motivation
             </h3>
-
-            <p
+            <div
               style={{
-                fontStyle: "italic",
-                color: "#4a5568",
-                fontSize: "14px",
-                lineHeight: "1.5",
-                marginBottom: "12px",
-                background: "#f7fafc",
-                padding: "10px",
-                borderRadius: "6px",
-                border: "1px solid #e2e8f0",
+                backgroundColor: "#EAE4D5",
+                padding: "16px",
+                borderRadius: "12px",
+                marginBottom: "16px",
+                border: "2px solid #B6B09F",
               }}
             >
-              "{currentQuote}"
-            </p>
-
+              <p
+                style={{
+                  fontStyle: "italic",
+                  color: "#000000",
+                  fontSize: "14px",
+                  lineHeight: "1.6",
+                  margin: 0,
+                  fontWeight: "500",
+                }}
+              >
+                "{currentQuote}"
+              </p>
+            </div>
             <button
               onClick={fetchMotivationalQuote}
-              style={{
-                ...buttonStyle,
-                fontSize: "13px",
-                padding: "8px 12px",
-                display: "flex",
-                alignItems: "center",
-                gap: "6px",
-                borderRadius: "8px",
-                background: "#667eea",
-                color: "white",
-                border: "none",
-              }}
+              style={{ ...buttonStyle, width: "100%" }}
             >
-              🔄 Refresh Quote
+              🔄 Get New Quote
             </button>
           </div>
 
@@ -1202,16 +1185,26 @@ const audioRef = useRef(null);
           <div style={cardStyle}>
             <h3
               style={{
-                fontSize: "18px",
-                margin: "0 0 12px 0",
-                color: "#2d3748",
+                fontSize: "20px",
+                margin: "0 0 16px 0",
+                color: "#000000",
+                fontWeight: "600",
               }}
             >
               📝 Pinned Notes
             </h3>
-            <div style={{ fontSize: "13px", marginBottom: "8px" }}>
+            <div style={{ marginBottom: "16px" }}>
               {notes.length === 0 ? (
-                <div style={{ color: "#718096", fontStyle: "italic" }}>
+                <div
+                  style={{
+                    color: "#B6B09F",
+                    fontStyle: "italic",
+                    textAlign: "center",
+                    padding: "20px",
+                    backgroundColor: "#EAE4D5",
+                    borderRadius: "12px",
+                  }}
+                >
                   No notes yet. Add your first note!
                 </div>
               ) : (
@@ -1219,84 +1212,78 @@ const audioRef = useRef(null);
                   <div
                     key={index}
                     style={{
-                      background: "#f0f4ff",
-                      padding: "8px",
-                      borderRadius: "6px",
-                      marginBottom: "8px",
-                      border: "1px solid #e6f3ff",
+                      backgroundColor: "#EAE4D5",
+                      padding: "16px",
+                      borderRadius: "12px",
+                      marginBottom: "12px",
+                      border: "2px solid #B6B09F",
                     }}
                   >
                     <div
                       style={{
-                        fontWeight: "bold",
-                        color: "#2d3748",
-                        marginBottom: "4px",
+                        fontWeight: "600",
+                        color: "#000000",
+                        marginBottom: "8px",
+                        fontSize: "16px",
                       }}
                     >
                       {note.title}
                     </div>
-                    <div style={{ color: "#4a5568", fontSize: "12px" }}>
+                    <div
+                      style={{
+                        color: "#000000",
+                        fontSize: "14px",
+                        lineHeight: "1.5",
+                      }}
+                    >
                       {note.content}
                     </div>
-                    
-
                   </div>
                 ))
               )}
             </div>
 
-
             {showNoteForm ? (
               <div
                 style={{
-                  background: "#f7fafc",
-                  padding: "12px",
-                  borderRadius: "8px",
-                  marginBottom: "8px",
+                  backgroundColor: "#EAE4D5",
+                  padding: "16px",
+                  borderRadius: "12px",
+                  marginBottom: "12px",
                 }}
               >
-
                 <input
                   type="text"
                   placeholder="Note title"
                   value={newNote.title}
-
                   onChange={(e) =>
                     setNewNote({ ...newNote, title: e.target.value })
                   }
                   style={{
+                    ...inputStyle,
                     width: "100%",
-                    padding: "8px",
-                    marginBottom: "8px",
-                    borderRadius: "4px",
-                    border: "1px solid #e2e8f0",
-                    fontSize: "14px",
-
+                    marginBottom: "12px",
                   }}
                 />
                 <textarea
                   placeholder="Note content"
                   value={newNote.content}
-
                   onChange={(e) =>
                     setNewNote({ ...newNote, content: e.target.value })
                   }
-                  rows={3}
+                  rows={4}
                   style={{
+                    ...inputStyle,
                     width: "100%",
-                    padding: "8px",
-                    marginBottom: "8px",
-                    borderRadius: "4px",
-                    border: "1px solid #e2e8f0",
-                    fontSize: "14px",
+                    marginBottom: "12px",
                     resize: "vertical",
                     fontFamily: "inherit",
                   }}
                 />
-                <div style={{ display: "flex", gap: "8px" }}>
+                <div style={{ display: "flex", gap: "12px" }}>
                   <button
                     onClick={handleAddNote}
-                    style={{ ...buttonStyle, fontSize: "12px", flex: 1 }}
+                    style={{ ...buttonStyle, flex: 1 }}
                   >
                     Save Note
                   </button>
@@ -1307,11 +1294,10 @@ const audioRef = useRef(null);
                     }}
                     style={{
                       ...buttonStyle,
-                      fontSize: "12px",
-                      background: "#e2e8f0",
-                      color: "#2d3748",
+                      backgroundColor: "#F2F2F2",
+                      color: "#000000",
+                      border: "2px solid #B6B09F",
                       flex: 1,
-
                     }}
                   >
                     Cancel
@@ -1319,246 +1305,269 @@ const audioRef = useRef(null);
                 </div>
               </div>
             ) : (
-
               <button
                 onClick={() => setShowNoteForm(true)}
-                style={{ ...buttonStyle, fontSize: "12px", width: "100%" }}
+                style={{ ...buttonStyle, width: "100%", marginBottom: "12px" }}
               >
-                <Plus size={14} style={{ marginRight: "4px" }} /> Add Note
-                </button>
-                
+                <Plus size={16} style={{ marginRight: "8px" }} /> Add Note
+              </button>
             )}
             <button
-              onClick={handleDeleteNote 
-            }style={{ ...buttonStyle, fontSize: "12px", width: "100%", marginTop: "8px" }}>
-              <Minus size={14} style={{ marginRight: "4px" }} /> Delete Note
+              onClick={handleDeleteNote}
+              style={{
+                ...buttonStyle,
+                backgroundColor: "#000000",
+                color: "#F2F2F2",
+                width: "100%",
+              }}
+            >
+              <Minus size={16} style={{ marginRight: "8px" }} /> Delete Last
+              Note
             </button>
           </div>
 
-          <div
-            style={{
-              backgroundColor: "#f7fafc",
-              padding: "20px",
-              borderRadius: "12px",
-              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
-              marginBottom: "24px",
-              maxWidth: "600px",
-              width: "100%",
-            }}
-          >
+          {/* Completed Topics */}
+          <div style={cardStyle}>
             <h3
               style={{
                 fontSize: "20px",
+                margin: "0 0 16px 0",
+                color: "#000000",
                 fontWeight: "600",
-                color: "#2d3748",
-                marginBottom: "16px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
               }}
             >
               📝 Completed Topics
             </h3>
-
-            <div style={{ display: "flex", marginBottom: "16px" }}>
+            <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
               <input
                 type="text"
                 value={newTopic}
                 onChange={(e) => setNewTopic(e.target.value)}
                 placeholder="Enter a new topic"
-                style={{
-                  flex: 1,
-                  padding: "10px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #CBD5E0",
-                  fontSize: "14px",
-                  outline: "none",
-                  backgroundColor: "#fff",
-                }}
+                style={{ ...inputStyle, flex: 1 }}
               />
-              <button
-                onClick={handleAddTopic}
-                style={{
-                  marginLeft: "8px",
-                  padding: "10px 16px",
-                  backgroundColor: "#48BB78",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "8px",
-                  fontWeight: "600",
-                  fontSize: "14px",
-                  cursor: "pointer",
-                  transition: "background-color 0.3s ease",
-                }}
-              >
+              <button onClick={handleAddTopic} style={buttonStyle}>
                 ➕ Add
               </button>
             </div>
-
-            <ul style={{ listStyleType: "disc", paddingLeft: "20px" }}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
+            >
               {topicList
                 .filter((t) => t.trim() !== "")
                 .map((topic, idx) => (
-                  <li
+                  <div
                     key={idx}
                     style={{
                       display: "flex",
                       justifyContent: "space-between",
                       alignItems: "center",
-                      marginBottom: "10px",
+                      padding: "12px",
+                      backgroundColor: "#EAE4D5",
+                      borderRadius: "8px",
+                      border: "1px solid #B6B09F",
                     }}
                   >
-                    <span style={{ fontSize: "15px", color: "#2d3748" }}>
+                    <span
+                      style={{
+                        fontSize: "14px",
+                        color: "#000000",
+                        fontWeight: "500",
+                      }}
+                    >
                       {topic}
                     </span>
                     <button
                       onClick={() => handleDeleteTopic(topic)}
                       style={{
-                        padding: "6px 10px",
-                        backgroundColor: "#F56565",
-                        color: "white",
-                        border: "none",
-                        borderRadius: "6px",
-                        fontSize: "13px",
-                        cursor: "pointer",
+                        ...buttonStyle,
+                        backgroundColor: "#000000",
+                        color: "#F2F2F2",
+                        padding: "6px 12px",
+                        fontSize: "12px",
                       }}
                     >
-                      🗑️ Delete
+                      🗑️
                     </button>
-                  </li>
+                  </div>
                 ))}
-            </ul>
+            </div>
           </div>
 
           <div
             style={{
-              backgroundColor: "#f7fafc",
-              padding: "20px",
-              borderRadius: "12px",
-              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
-              marginBottom: "24px",
-              maxWidth: "330px",
-              width: "100%",
-              marginLeft: "40px",
+              minHeight: "30vh",
+              backgroundColor: "#F2F2F2",
+              padding: "40px 20px",
+              fontFamily:
+                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              paddingTop: "60px",
             }}
           >
-            <h3
+            <div
               style={{
-                fontSize: "20px",
-                fontWeight: "600",
-                color: "#2d3748",
-                marginBottom: "16px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
+                backgroundColor: "#EAE4D5",
+                padding: "24px",
+                borderRadius: "12px",
+                border: "1px solid #B6B09F",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
+                maxWidth: "380px",
+                width: "100%",
               }}
             >
-              ⏱️ Timer & Stopwatch
-            </h3>
-
-            {/* Stopwatch */}
-            <div style={{ marginBottom: "24px" }}>
-              <h4
+              <h3
                 style={{
-                  fontSize: "16px",
-                  color: "#2d3748",
-                  marginBottom: "8px",
+                  fontSize: "20px",
+                  fontWeight: "600",
+                  color: "#000000",
+                  marginBottom: "24px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
                 }}
               >
-                🕒 Stopwatch: {formatTime(stopwatchTime)}
-              </h4>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => setIsStopwatchRunning(true)}
-                  style={buttonStyle1("#4299E1")}
+                ⏱️ Timer & Stopwatch
+              </h3>
 
-                >
-                  ▶ Start
-                </button>
-                <button
-                  onClick={() => setIsStopwatchRunning(false)}
-                  style={buttonStyle1("#ED8936")}
-                >
-                  ⏸️ Pause
-                </button>
-                <button
-                  onClick={() => {
-                    setStopwatchTime(0);
-                    setIsStopwatchRunning(false);
+              {/* Stopwatch */}
+              <div style={{ marginBottom: "32px" }}>
+                <h4
+                  style={{
+                    fontSize: "16px",
+                    color: "#000000",
+                    marginBottom: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   }}
-                  style={buttonStyle1("#F56565")}
                 >
-                  🔁 Reset
-                </button>
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    🕒 Stopwatch
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      color: "#000000",
+                    }}
+                  >
+                    {formatTime(stopwatchTime)}
+                  </span>
+                </h4>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => setIsStopwatchRunning(true)}
+                    style={buttonStyle1("#000000")}
+                  >
+                    ▶ Start
+                  </button>
+                  <button
+                    onClick={() => setIsStopwatchRunning(false)}
+                    style={buttonStyle1("#B6B09F")}
+                  >
+                    ⏸️ Pause
+                  </button>
+                  <button
+                    onClick={() => {
+                      setStopwatchTime(0);
+                      setIsStopwatchRunning(false);
+                    }}
+                    style={buttonStyle1("#B6B09F")}
+                  >
+                    🔁 Reset
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Timer */}
-            <div>
-              <h4
-                style={{
-                  fontSize: "16px",
-                  color: "#2d3748",
-                  marginBottom: "8px",
-                }}
-              >
-                ⏳ Timer: {formatTime(timerTime)}
-              </h4>
-              <div style={{ display: "flex", marginBottom: "12px" }}>
-                <input
-                  type="number"
-                  placeholder="Enter time in seconds"
-                  value={timerInput}
-                  onChange={(e) => setTimerInput(e.target.value)}
+              {/* Timer */}
+              <div>
+                <h4
                   style={{
-                    flex: 1,
-                    padding: "10px 12px",
-                    borderRadius: "8px",
-                    border: "1px solid #CBD5E0",
-                    fontSize: "14px",
-                    outline: "none",
-                    backgroundColor: "#fff",
-                  }}
-                />
-                
-              </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => {
-                    setTimerTime(Number(timerInput));
-                    setIsTimerRunning(true);
-                  }}
-                  style={{
-                    marginLeft: "8px",
-                    padding: "10px 16px",
-                    backgroundColor: "#48BB78",
-                    color: "white",
-                    border: "none",
-                    borderRadius: "8px",
-                    fontWeight: "600",
-                    fontSize: "14px",
-                    cursor: "pointer",
-                    transition: "background-color 0.3s ease",
+                    fontSize: "16px",
+                    color: "#000000",
+                    marginBottom: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
                   }}
                 >
-                  🟢 Start
-                </button>
-                <button
-                  onClick={() => setIsTimerRunning(false)}
-                  style={buttonStyle1("#ED8936")}
-                >
-                  ⏸️ Pause
-                </button>
-                <button
-                  onClick={() => {
-                    setTimerTime(0);
-                    setTimerInput("");
-                    setIsTimerRunning(false);
-                  }}
-                  style={buttonStyle1("#F56565")}
-                >
-                  🔁 Reset
-                </button>
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                    }}
+                  >
+                    ⏳ Timer
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: "monospace",
+                      fontSize: "18px",
+                      fontWeight: "700",
+                      color: "#000000",
+                    }}
+                  >
+                    {formatTime(timerTime)}
+                  </span>
+                </h4>
+                <div style={{ marginBottom: "12px" }}>
+                  <input
+                    type="number"
+                    placeholder="Enter time in seconds"
+                    value={timerInput}
+                    onChange={(e) => setTimerInput(e.target.value)}
+                    style={{
+                      width: "100%",
+                      padding: "12px 16px",
+                      borderRadius: "8px",
+                      border: "1px solid #B6B09F",
+                      fontSize: "14px",
+                      outline: "none",
+                      backgroundColor: "#F2F2F2",
+                      color: "#000000",
+                      boxSizing: "border-box",
+                      fontFamily: "inherit",
+                    }}
+                  />
+                </div>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => {
+                      setTimerTime(Number(timerInput));
+                      setIsTimerRunning(true);
+                    }}
+                    style={buttonStyle1("#000000")}
+                  >
+                    🟢 Start
+                  </button>
+                  <button
+                    onClick={() => setIsTimerRunning(false)}
+                    style={buttonStyle1("#B6B09F")}
+                  >
+                    ⏸️ Pause
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTimerTime(0);
+                      setTimerInput("");
+                      setIsTimerRunning(false);
+                    }}
+                    style={buttonStyle1("#B6B09F")}
+                  >
+                    🔁 Reset
+                  </button>
+                </div>
               </div>
             </div>
           </div>

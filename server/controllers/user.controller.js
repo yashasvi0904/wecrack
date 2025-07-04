@@ -256,6 +256,29 @@ const addTask = async (req, res) => {
     res.status(500).json({ message: "Failed to add task" });
   }
 };
+const updatetasks = async (req, res) => {
+  try {
+    const user = req.user;
+    const { _id, completed, subject, title } = req.body;
+
+    const taskIndex = user.tasks.findIndex(task => task._id.toString() === _id);
+
+    if (taskIndex === -1) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    if (completed !== undefined) user.tasks[taskIndex].completed = completed;
+    if (subject) user.tasks[taskIndex].subject = subject;
+    if (title) user.tasks[taskIndex].title = title;
+
+    await user.save();
+
+    res.status(200).json({ message: "Task updated successfully", task: user.tasks[taskIndex] });
+  } catch (err) {
+    console.error("Error updating task:", err);
+    res.status(500).json({ message: "Failed to update task" });
+  }
+};
 
 const getTasks = async (req, res) => {
   try {
@@ -436,7 +459,7 @@ module.exports = {
   getmockscore,
   addTask,
   getTasks,
-  
+  updatetasks,
   addNote,
   deleteNote,
   updateSyllabusTopic,
