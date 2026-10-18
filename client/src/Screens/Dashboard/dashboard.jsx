@@ -547,7 +547,6 @@ const GateDashboard = () => {
 
   const songs = [
     { name: "Song 1", file: "/Music/Song1.mp3" },
-    { name: "Song 2", file: "/Music/Song2.mp3" },
   ];
 
   const togglePlay = () => {
