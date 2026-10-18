@@ -36,6 +36,9 @@ syllabus: [
 ],
 activityLog: [String],
 
+// Daily habit tracker: { habits: [{ id, name, icon, createdAt }], log: { "YYYY-MM-DD": [habitId] }, updatedAt }
+habitData: { type: mongoose.Schema.Types.Mixed, default: () => ({ habits: [], log: {}, updatedAt: 0 }) },
+
 
   topics: [{ type: String }],
 

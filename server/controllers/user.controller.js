@@ -449,6 +449,70 @@ const getTopics = async (req, res) => {
 
 
 
+// ---------------------------------------------------------------------------
+// Daily habit tracker
+// ---------------------------------------------------------------------------
+const HABIT_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+const getHabits = async (req, res) => {
+  try {
+    const stored = req.user.habitData || {};
+    res.status(200).json({
+      habits: Array.isArray(stored.habits) ? stored.habits : [],
+      log: stored.log && typeof stored.log === "object" ? stored.log : {},
+      updatedAt: Number(stored.updatedAt) || 0,
+    });
+  } catch (err) {
+    console.error("Error getting habits:", err);
+    res.status(500).json({ message: "Failed to fetch habits" });
+  }
+};
+
+const saveHabits = async (req, res) => {
+  try {
+    const { habits, log, updatedAt } = req.body || {};
+    if (
+      !Array.isArray(habits) || habits.length > 50 ||
+      !log || typeof log !== "object" || Array.isArray(log) ||
+      Object.keys(log).length > 3700
+    ) {
+      return res.status(400).json({ message: "Invalid habit data." });
+    }
+
+    const seen = new Set();
+    const cleanHabits = [];
+    for (const h of habits) {
+      const id = String((h && h.id) || "").slice(0, 64);
+      const name = String((h && h.name) || "").trim().slice(0, 40);
+      if (!id || !name || seen.has(id)) continue;
+      seen.add(id);
+      cleanHabits.push({
+        id,
+        name,
+        icon: String((h && h.icon) || "").slice(0, 8),
+        createdAt: HABIT_DATE_RE.test(h.createdAt) ? h.createdAt : "",
+      });
+    }
+
+    const cleanLog = {};
+    for (const [day, ids] of Object.entries(log)) {
+      if (!HABIT_DATE_RE.test(day) || !Array.isArray(ids)) continue;
+      const done = [...new Set(ids.map(String))].filter((id) => seen.has(id));
+      if (done.length) cleanLog[day] = done;
+    }
+
+    const now = Date.now();
+    const stamp = Math.min(Number(updatedAt) || now, now + 24 * 60 * 60 * 1000);
+    const habitData = { habits: cleanHabits, log: cleanLog, updatedAt: stamp };
+
+    await User.updateOne({ _id: req.user._id }, { $set: { habitData } });
+    res.status(200).json({ message: "Habits saved", updatedAt: stamp });
+  } catch (err) {
+    console.error("Error saving habits:", err);
+    res.status(500).json({ message: "Failed to save habits" });
+  }
+};
+
 module.exports = {
   registerUser,
   loginUser,
@@ -469,5 +533,7 @@ module.exports = {
   deleteTask,
   topicstracker,
   getTopics,
+  getHabits,
+  saveHabits,
 
 }

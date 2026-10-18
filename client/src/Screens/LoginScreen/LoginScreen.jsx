@@ -24,14 +24,43 @@ export default function LoginScreen() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-    
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate API call
+   e.preventDefault();
+  if (!validateForm()) return;
+
+  setIsLoading(true);
+
+  try {
+    const endpoint = isSignUp
+      ? process.env.REACT_APP_REGISTER_URI || "http://localhost:5000/api/register"
+      : process.env.REACT_APP_LOGIN_URI || "http://localhost:5000/api/login";
+
+    const response = await fetch(endpoint, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include", // important for cookies
+      body: JSON.stringify(isSignUp ? { name, email, password } : { email, password }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      console.log(isSignUp ? "Registered successfully" : "Login successful", data);
+      // Redirect user
+      if (data.role === "admin") {
+        navigate("/admin-dashboard");
+      } else {
+        navigate("/dashboard");
+      }
+    } else {
+      alert(data.message || "Something went wrong.");
+    }
+  } catch (err) {
+    console.error("Auth error:", err);
+    alert("Server error. Try again later.");
+  } finally {
     setIsLoading(false);
-    console.log(isSignUp ?
-       'Sign Up:' : 'Login:', { email, password, ...(isSignUp && { name }), rememberMe });
+  }
+
   };
 
   const inputStyle = (error) => ({

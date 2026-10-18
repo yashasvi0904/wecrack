@@ -21,6 +21,7 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
+import HabitSummaryCard from "../HabitTracker/HabitSummaryCard";
 
 const GateDashboard = () => {
   const [analytics, setAnalytics] = useState({
@@ -150,6 +151,17 @@ const GateDashboard = () => {
     fetchMotivationalQuote();
 
     fetchAnalytics();
+    const pingBackend = () => {
+    axios.get('https://wecrack-gate.onrender.com/ping')
+      .then(res => console.log('[Ping OK]', res.data.status))
+      .catch(err => console.error('[Ping Error]', err.message));
+  };
+
+  // Run immediately and then every 10 mins
+  pingBackend();
+  const interval = setInterval(pingBackend, 10 * 60 * 1000);
+
+  return () => clearInterval(interval);
   }, []);
 
   const fetchTasks = async () => {
@@ -1141,6 +1153,9 @@ const GateDashboard = () => {
               ))}
             </div>
           </div>
+
+          {/* Daily Habits */}
+          <HabitSummaryCard />
 
           {/* Daily Motivation */}
           <div style={cardStyle}>

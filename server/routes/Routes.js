@@ -22,7 +22,9 @@ const {
   getTopics,
   getAnalytics,
   updateSyllabusTopic,
-  deleteNote
+  deleteNote,
+  getHabits,
+  saveHabits
 } = require('../controllers/user.controller');
 
 
@@ -60,6 +62,14 @@ router.post('/save-notes', verifyToken, saveNotes);
 router.post("/update-syllabus-progress", verifyToken, topicstracker);
 router.get("/get-syllabus-progress", verifyToken, getTopics);
 router.post("/auth/google", googleLoginUser);
+// Daily habit tracker (per-user)
+router.get('/habits', verifyToken, getHabits);
+router.post('/habits', verifyToken, saveHabits);
+
+router.get('/ping', (req, res) => {
+  res.status(200).json({ status: '🟢 Backend is awake!' });
+});
+
 
 
 
