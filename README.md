@@ -4,6 +4,20 @@ A full-stack **GATE preparation tracker**. Plan your study tasks, keep your syll
 
 > **Stack:** React 19 · React Router 7 · Recharts · Firebase Auth · Express 5 · MongoDB (Mongoose) · JWT cookies
 
+**Live demo:** https://wecrack.vercel.app
+
+### Screenshots
+
+![WeCrack dashboard](docs/screenshots/dashboard.png)
+
+*Dashboard: syllabus, mock-score and streak rings, today's habits, planner and scores chart.*
+
+![WeCrack habit tracker](docs/screenshots/habits.png)
+
+*Habit tracker: monthly grid, completion donut, daily trend and per-habit stats.*
+
+> Screenshots use sample data.
+
 ---
 
 ## Table of contents

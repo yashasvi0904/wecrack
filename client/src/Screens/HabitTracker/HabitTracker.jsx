@@ -104,7 +104,7 @@ const css = `
 .ht-grid { border-collapse: separate; border-spacing: 0; width: 100%; }
 .ht-label { min-width: 210px; }
 .ht-grid th, .ht-grid td { padding: 0; text-align: center; }
-.ht-sticky { position: sticky; left: 0; z-index: 2; background: var(--glass); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); text-align: left !important; }
+.ht-sticky { position: sticky; left: 0; z-index: 2; background: var(--card-solid); text-align: left !important; }
 .ht-day { min-width: 36px; padding: 6px 0 8px !important; font-weight: 500; color: ${C.muted}; }
 .ht-day .ht-wd { font-size: 12px; text-transform: uppercase; letter-spacing: .02em; }
 .ht-day .ht-dn { font-size: 15px; color: ${C.ink}; font-weight: 600; }
