@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Trash2 } from "lucide-react";
+import AppShell from "../../components/AppShell";
 import {
   Area,
   AreaChart,
@@ -16,16 +18,20 @@ import {
 import useHabitData, { SYNC_ENABLED, useTodayKey } from "./useHabitData";
 import { computeStats, fromKey } from "./habitStats";
 
-// WeCrack palette (same beige / black family as the dashboard).
+// Apple-style palette. Values are CSS variables from styles/apple.css, so the
+// page follows the system light / dark appearance automatically.
 const C = {
-  ink: "#000000",
-  paper: "#F2F2F2",
-  sand: "#EAE4D5",
-  taupe: "#B6B09F",
-  surface: "#FFFFFF",
-  hair: "#E4DFD1",
-  muted: "#6B675C", // readable secondary text (taupe is too faint for text)
-  todayBg: "#F7F4EC",
+  ink: "var(--label)",
+  paper: "var(--fill)",
+  sand: "var(--fill-2)",
+  taupe: "var(--label-3)",
+  surface: "var(--card)",
+  hair: "var(--separator)",
+  muted: "var(--label-2)",
+  todayBg: "var(--accent-soft)",
+  accent: "var(--accent)",
+  onAccent: "var(--on-accent)",
+  danger: "var(--red)",
 };
 
 const ICONS = ["🎯", "🏋️", "📚", "🧠", "💻", "📝", "😴", "🏃", "💧", "🧘", "🥗", "⏰"];
@@ -47,49 +53,49 @@ const STATUS_TEXT = {
 };
 
 const cardStyle = {
-  background: C.surface,
-  borderRadius: "12px",
-  padding: "20px",
-  boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-  marginBottom: "16px",
+  background: "var(--card)",
+  borderRadius: "28px",
+  padding: "24px",
+  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), inset 0 0 0 1px rgba(255,255,255,0.05)",
+  marginBottom: "18px",
 };
-const h2Style = { fontSize: "22px", margin: 0, color: C.ink, fontWeight: 600 };
+const h2Style = { fontSize: "26px", margin: 0, color: C.ink, fontWeight: 500, textTransform: "lowercase" };
 const primaryBtn = {
-  background: C.ink,
-  color: C.paper,
+  background: C.accent,
+  color: C.onAccent,
   border: "none",
-  borderRadius: "8px",
-  padding: "10px 16px",
+  borderRadius: "999px",
+  padding: "11px 22px",
   cursor: "pointer",
-  fontSize: "14px",
-  fontWeight: 600,
+  fontSize: "16px",
+  fontWeight: 500,
 };
 const ghostBtn = {
-  background: C.paper,
+  background: C.sand,
   color: C.ink,
-  border: `2px solid ${C.taupe}`,
-  borderRadius: "8px",
-  padding: "8px 14px",
+  border: "none",
+  borderRadius: "999px",
+  padding: "9px 18px",
   cursor: "pointer",
-  fontSize: "14px",
-  fontWeight: 600,
+  fontSize: "16px",
+  fontWeight: 500,
 };
 const inputStyle = {
   backgroundColor: C.paper,
-  border: `2px solid ${C.sand}`,
-  borderRadius: "8px",
-  padding: "10px 14px",
-  fontSize: "14px",
+  border: `1px solid ${C.hair}`,
+  borderRadius: "14px",
+  padding: "11px 14px",
+  fontSize: "16px",
   outline: "none",
   color: C.ink,
 };
 const tipStyle = {
-  background: C.surface,
-  border: `1px solid ${C.hair}`,
-  borderRadius: "8px",
-  boxShadow: "0 4px 12px rgba(0,0,0,0.12)",
+  background: "var(--card-solid)",
+  border: `0.5px solid ${C.hair}`,
+  borderRadius: "12px",
+  boxShadow: "var(--shadow-float)",
   padding: "8px 12px",
-  fontSize: "12px",
+  fontSize: "13px",
   color: C.muted,
 };
 
@@ -98,34 +104,35 @@ const css = `
 .ht-grid { border-collapse: separate; border-spacing: 0; width: 100%; }
 .ht-label { min-width: 210px; }
 .ht-grid th, .ht-grid td { padding: 0; text-align: center; }
-.ht-sticky { position: sticky; left: 0; z-index: 2; background: ${C.surface}; text-align: left !important; }
-.ht-sticky::after { content: ""; position: absolute; top: 0; right: 0; bottom: 0; width: 1px; background: ${C.hair}; }
-.ht-day { min-width: 34px; padding: 6px 0 8px !important; font-weight: 500; color: ${C.muted}; }
-.ht-day .ht-wd { font-size: 11px; }
-.ht-day .ht-dn { font-size: 13px; color: ${C.ink}; font-weight: 600; }
+.ht-sticky { position: sticky; left: 0; z-index: 2; background: var(--glass); -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); text-align: left !important; }
+.ht-day { min-width: 36px; padding: 6px 0 8px !important; font-weight: 500; color: ${C.muted}; }
+.ht-day .ht-wd { font-size: 12px; text-transform: uppercase; letter-spacing: .02em; }
+.ht-day .ht-dn { font-size: 15px; color: ${C.ink}; font-weight: 600; }
 .ht-today { background: ${C.todayBg}; }
-.ht-today .ht-dn { text-decoration: underline; text-underline-offset: 3px; }
-.ht-row td, .ht-row th { border-top: 1px solid ${C.hair}; }
-.ht-cell { width: 34px; height: 40px; margin: 0 auto; display: flex; align-items: center; justify-content: center;
-  background: transparent; border: 0; padding: 0; cursor: pointer; border-radius: 8px; }
-.ht-box { width: 20px; height: 20px; border-radius: 6px; border: 2px solid ${C.taupe}; background: ${C.surface};
+th.ht-today { border-radius: 12px 12px 0 0; }
+.ht-today .ht-dn { color: ${C.accent}; }
+.ht-row td, .ht-row th { border-top: 0.5px solid ${C.hair}; }
+.ht-cell { width: 36px; height: 42px; margin: 0 auto; display: flex; align-items: center; justify-content: center;
+  background: transparent; border: 0; padding: 0; cursor: pointer; border-radius: 10px; }
+.ht-box { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid ${C.taupe}; background: transparent;
   display: flex; align-items: center; justify-content: center; box-sizing: border-box;
-  transition: background .15s ease, border-color .15s ease; }
-.ht-cell:hover:not(:disabled) .ht-box { border-color: ${C.ink}; }
-.ht-cell[aria-checked="true"] .ht-box { background: ${C.ink}; border-color: ${C.ink}; }
+  transition: background .18s ease, border-color .18s ease, transform .18s ease; }
+.ht-cell:hover:not(:disabled) .ht-box { border-color: ${C.accent}; }
+.ht-cell:active:not(:disabled) .ht-box { transform: scale(.88); }
+.ht-cell[aria-checked="true"] .ht-box { background: ${C.accent}; border-color: ${C.accent}; }
 .ht-cell:focus-visible, .ht-btn:focus-visible, .ht-name:focus-visible, .ht-seg button:focus-visible {
-  outline: 2px solid ${C.ink}; outline-offset: 2px; }
+  outline: 3px solid var(--focus); outline-offset: 2px; }
 .ht-cell:disabled { cursor: not-allowed; }
-.ht-cell:disabled .ht-box { opacity: .35; background: transparent; }
+.ht-cell:disabled .ht-box { opacity: .3; }
 .ht-cell.ht-pre .ht-box { border-color: ${C.hair}; }
 .ht-name { background: none; border: 0; padding: 4px 2px; font: inherit; font-weight: 600; color: ${C.ink};
   cursor: text; text-align: left; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ht-name:hover { text-decoration: underline; text-decoration-color: ${C.taupe}; text-underline-offset: 3px; }
-.ht-del { background: none; border: 0; cursor: pointer; font-size: 14px; padding: 6px; border-radius: 6px; opacity: .5; }
-.ht-del:hover, .ht-del:focus-visible { opacity: 1; background: ${C.sand}; }
-.ht-seg { display: inline-flex; border: 2px solid ${C.sand}; border-radius: 8px; overflow: hidden; }
-.ht-seg button { background: ${C.surface}; color: ${C.muted}; border: 0; padding: 6px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
-.ht-seg button[aria-pressed="true"] { background: ${C.ink}; color: ${C.paper}; }
+.ht-name:hover { color: ${C.accent}; }
+.ht-del { background: none; border: 0; cursor: pointer; padding: 6px; border-radius: 8px; opacity: .45; color: ${C.danger}; display: inline-flex; }
+.ht-del:hover, .ht-del:focus-visible { opacity: 1; background: var(--red-soft); }
+.ht-seg { display: inline-flex; background: ${C.sand}; border-radius: 10px; padding: 2px; gap: 2px; }
+.ht-seg button { background: transparent; color: ${C.ink}; border: 0; padding: 5px 14px; font-size: 14px; font-weight: 500; cursor: pointer; border-radius: 8px; }
+.ht-seg button[aria-pressed="true"] { background: ${C.surface}; box-shadow: 0 1px 3px rgba(0,0,0,.18); font-weight: 600; }
 .ht-scroll { overflow-x: auto; }
 @media (max-width: 640px) {
   .ht-label { min-width: 156px; }
@@ -184,7 +191,7 @@ function HabitName({ habit, onRename }) {
             setEditing(false);
           }
         }}
-        style={{ ...inputStyle, padding: "4px 8px", width: "130px", fontSize: "14px", fontWeight: 600 }}
+        style={{ ...inputStyle, padding: "4px 8px", width: "130px", fontSize: "15px", fontWeight: 600 }}
       />
     );
   }
@@ -208,15 +215,14 @@ function Tile({ label, value, hint }) {
     <div
       style={{
         flex: "1 1 150px",
-        backgroundColor: C.sand,
-        border: `2px solid ${C.taupe}`,
-        borderRadius: "12px",
-        padding: "14px 16px",
+        backgroundColor: C.paper,
+        borderRadius: "16px",
+        padding: "16px 18px",
       }}
     >
-      <div style={{ fontSize: "13px", color: C.muted, fontWeight: 600 }}>{label}</div>
-      <div style={{ fontSize: "28px", fontWeight: 700, color: C.ink, lineHeight: 1.2, marginTop: "2px" }}>{value}</div>
-      <div style={{ fontSize: "12px", color: C.muted }}>{hint}</div>
+      <div style={{ fontSize: "14px", color: C.muted, fontWeight: 600 }}>{label}</div>
+      <div style={{ fontSize: "30px", fontWeight: 700, color: C.ink, lineHeight: 1.2, marginTop: "2px" }}>{value}</div>
+      <div style={{ fontSize: "13px", color: C.muted }}>{hint}</div>
     </div>
   );
 }
@@ -226,7 +232,7 @@ function DonutTip({ active, payload }) {
   const { name, value } = payload[0].payload;
   return (
     <div style={tipStyle}>
-      <div style={{ fontSize: "16px", fontWeight: 700, color: C.ink }}>{value}</div>
+      <div style={{ fontSize: "17px", fontWeight: 700, color: C.ink }}>{value}</div>
       <div>{name} check-ins</div>
     </div>
   );
@@ -240,8 +246,8 @@ function TrendTip({ active, payload }) {
     <div style={tipStyle}>
       <div>{fmtDay(row.key)}</div>
       <div style={{ display: "flex", alignItems: "center", gap: "6px", margin: "2px 0" }}>
-        <span style={{ width: "12px", height: "2px", background: C.ink, display: "inline-block" }} />
-        <strong style={{ fontSize: "18px", color: C.ink }}>{row.pct}%</strong>
+        <span style={{ width: "12px", height: "2px", background: C.accent, display: "inline-block" }} />
+        <strong style={{ fontSize: "19px", color: C.ink }}>{row.pct}%</strong>
       </div>
       <div>
         {row.done} of {row.tracked} habits done
@@ -316,8 +322,8 @@ export default function HabitTracker() {
   };
 
   const pie = [
-    { name: "Done", value: totals.done, color: C.ink },
-    { name: "Not done", value: totals.notDone, color: C.taupe },
+    { name: "Done", value: totals.done, color: C.accent },
+    { name: "Not done", value: totals.notDone, color: C.muted },
     { name: "Upcoming", value: totals.upcoming, color: C.sand },
   ].filter((s) => s.value > 0);
 
@@ -337,30 +343,23 @@ export default function HabitTracker() {
     typeof window === "undefined" || !window.matchMedia || !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   return (
-    <div
-      className="ht-page"
-      style={{
-        background: "linear-gradient(135deg, #F2F2F2 0%, #EAE4D5 100%)",
-        minHeight: "100vh",
-        padding: "20px",
-      }}
-    >
+    <AppShell active="habits">
       <style>{css}</style>
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+      <div>
         {/* Header */}
-        <div style={{ ...cardStyle, display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "center", justifyContent: "space-between" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "flex-end", justifyContent: "space-between", padding: "0 0 24px" }}>
           <div>
-            <h1 style={{ fontSize: "32px", margin: "0 0 6px 0", color: C.ink, fontWeight: 700 }}>🔥 Daily Habit Tracker</h1>
-            <p style={{ color: C.muted, margin: 0, fontSize: "16px", fontWeight: 500 }}>
+            <h1 style={{ fontSize: "42px", lineHeight: 1.1, margin: "0 0 8px 0", color: C.ink, fontWeight: 500, letterSpacing: "-0.02em" }}>Habits</h1>
+            <p style={{ color: C.muted, margin: 0, fontSize: "18px", fontWeight: 400 }}>
               Tick off what you did today. Your stats update instantly.
             </p>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-            <span role="status" aria-live="polite" style={{ fontSize: "13px", color: C.muted, fontWeight: 600 }}>
+            <span role="status" aria-live="polite" style={{ fontSize: "14px", color: C.muted, fontWeight: 600 }}>
               {STATUS_TEXT[SYNC_ENABLED ? status : "local"]}
             </span>
             <button type="button" className="ht-btn" onClick={() => navigate("/dashboard")} style={ghostBtn}>
-              ← Dashboard
+              ‹ Dashboard
             </button>
           </div>
         </div>
@@ -368,10 +367,10 @@ export default function HabitTracker() {
         {/* Filter row: month + add habit */}
         <div style={{ ...cardStyle, display: "flex", flexWrap: "wrap", gap: "16px", alignItems: "flex-start", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <button type="button" className="ht-btn" aria-label="Previous month" onClick={() => shiftMonth(-1)} style={{ ...ghostBtn, padding: "8px 12px" }}>
+            <button type="button" className="ht-btn" aria-label="Previous month" onClick={() => shiftMonth(-1)} style={{ ...ghostBtn, padding: "4px 14px", fontSize: "24px", lineHeight: "1.2" }}>
               ‹
             </button>
-            <div style={{ minWidth: "150px", textAlign: "center", fontSize: "18px", fontWeight: 700, color: C.ink }} aria-live="polite">
+            <div style={{ minWidth: "150px", textAlign: "center", fontSize: "19px", fontWeight: 700, color: C.ink }} aria-live="polite">
               {monthLabel}
             </div>
             <button
@@ -380,7 +379,7 @@ export default function HabitTracker() {
               aria-label="Next month"
               onClick={() => shiftMonth(1)}
               disabled={isCurrentMonth}
-              style={{ ...ghostBtn, padding: "8px 12px", opacity: isCurrentMonth ? 0.4 : 1, cursor: isCurrentMonth ? "not-allowed" : "pointer" }}
+              style={{ ...ghostBtn, padding: "4px 14px", fontSize: "24px", lineHeight: "1.2", opacity: isCurrentMonth ? 0.4 : 1, cursor: isCurrentMonth ? "not-allowed" : "pointer" }}
             >
               ›
             </button>
@@ -420,11 +419,11 @@ export default function HabitTracker() {
                 style={{ ...inputStyle, width: "260px", maxWidth: "100%" }}
               />
               <button type="submit" className="ht-btn" style={primaryBtn}>
-                + Add habit
+                Add habit
               </button>
             </div>
             {formError && (
-              <div role="alert" style={{ fontSize: "13px", color: "#B42318" }}>
+              <div role="alert" style={{ fontSize: "14px", color: C.danger }}>
                 {formError}
               </div>
             )}
@@ -433,11 +432,11 @@ export default function HabitTracker() {
 
         {/* My Habits grid */}
         <div style={cardStyle}>
-          <h2 style={{ ...h2Style, marginBottom: "12px" }}>✅ My Habits</h2>
+          <h2 style={{ ...h2Style, marginBottom: "12px" }}>My Habits</h2>
           {habits.length === 0 ? (
-            <div style={{ backgroundColor: C.sand, borderRadius: "12px", padding: "24px", textAlign: "center" }}>
+            <div style={{ backgroundColor: C.paper, borderRadius: "16px", padding: "28px", textAlign: "center" }}>
               <div style={{ fontWeight: 600, color: C.ink, marginBottom: "4px" }}>No habits yet</div>
-              <div style={{ color: C.muted, fontSize: "14px", marginBottom: "16px" }}>
+              <div style={{ color: C.muted, fontSize: "15px", marginBottom: "16px" }}>
                 Add your first habit above, or start with one of these:
               </div>
               <div style={{ display: "flex", gap: "8px", justifyContent: "center", flexWrap: "wrap" }}>
@@ -453,7 +452,7 @@ export default function HabitTracker() {
               <table className="ht-grid">
                 <thead>
                   <tr>
-                    <th className="ht-sticky ht-label" style={{ padding: "6px 8px 8px 0", color: C.muted, fontSize: "13px", fontWeight: 600 }}>
+                    <th className="ht-sticky ht-label" style={{ padding: "6px 8px 8px 0", color: C.muted, fontSize: "14px", fontWeight: 600 }}>
                       Habit
                     </th>
                     {days.map((d) => (
@@ -470,7 +469,7 @@ export default function HabitTracker() {
                       <tr key={habit.id} className="ht-row">
                         <th scope="row" className="ht-sticky ht-label" style={{ padding: "0 8px 0 0" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px", height: "40px" }}>
-                            <span aria-hidden="true" style={{ fontSize: "18px" }}>{habit.icon}</span>
+                            <span aria-hidden="true" style={{ fontSize: "19px" }}>{habit.icon}</span>
                             <HabitName habit={habit} onRename={renameHabit} />
                             <button
                               type="button"
@@ -480,7 +479,7 @@ export default function HabitTracker() {
                               onClick={() => handleDelete(habit)}
                               style={{ marginLeft: "auto" }}
                             >
-                              🗑️
+                              <Trash2 size={15} />
                             </button>
                           </div>
                         </th>
@@ -517,7 +516,7 @@ export default function HabitTracker() {
           <div style={{ display: "flex", gap: "16px", flexWrap: "wrap", alignItems: "stretch" }}>
             {/* Donut */}
             <div style={{ ...cardStyle, flex: "1 1 300px", maxWidth: "420px" }}>
-              <h2 style={{ ...h2Style, fontSize: "20px" }}>🍩 {monthLabel}</h2>
+              <h2 style={{ ...h2Style, fontSize: "22px" }}>{monthLabel}</h2>
               {pie.length === 0 ? (
                 <p style={{ color: C.muted, margin: "24px 0 8px" }}>Nothing tracked in this month.</p>
               ) : (
@@ -559,17 +558,17 @@ export default function HabitTracker() {
                       <div style={{ fontSize: "52px", fontWeight: 700, color: C.ink, lineHeight: 1 }}>
                         {totals.pct == null ? "—" : `${totals.pct}%`}
                       </div>
-                      <div style={{ fontSize: "13px", color: C.muted, marginTop: "6px" }}>done so far</div>
+                      <div style={{ fontSize: "14px", color: C.muted, marginTop: "6px" }}>done so far</div>
                     </div>
                   </div>
-                  <ul style={{ listStyle: "none", display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", margin: "8px 0 0", padding: 0, fontSize: "13px", color: C.muted }}>
+                  <ul style={{ listStyle: "none", display: "flex", justifyContent: "center", gap: "16px", flexWrap: "wrap", margin: "8px 0 0", padding: 0, fontSize: "14px", color: C.muted }}>
                     {[
-                      { name: "Done", value: totals.done, color: C.ink },
-                      { name: "Not done", value: totals.notDone, color: C.taupe },
+                      { name: "Done", value: totals.done, color: C.accent },
+                      { name: "Not done", value: totals.notDone, color: C.muted },
                       { name: "Upcoming", value: totals.upcoming, color: C.sand },
                     ].map((s) => (
                       <li key={s.name} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                        <span aria-hidden="true" style={{ width: "10px", height: "10px", borderRadius: "3px", background: s.color, display: "inline-block", border: s.color === C.sand ? `1px solid ${C.taupe}` : "none" }} />
+                        <span aria-hidden="true" style={{ width: "10px", height: "10px", borderRadius: "50%", background: s.color, display: "inline-block", border: "none" }} />
                         {s.name} <strong style={{ color: C.ink }}>{s.value}</strong>
                       </li>
                     ))}
@@ -581,7 +580,7 @@ export default function HabitTracker() {
             {/* Trend */}
             <div style={{ ...cardStyle, flex: "3 1 480px", minWidth: 0 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                <h2 style={{ ...h2Style, fontSize: "20px" }}>📈 Daily completion</h2>
+                <h2 style={{ ...h2Style, fontSize: "22px" }}>Daily completion</h2>
                 <div className="ht-seg" role="group" aria-label="Chart or table view">
                   <button type="button" aria-pressed={trendView === "chart"} onClick={() => setTrendView("chart")}>
                     Chart
@@ -591,7 +590,7 @@ export default function HabitTracker() {
                   </button>
                 </div>
               </div>
-              <p style={{ color: C.muted, fontSize: "13px", margin: "4px 0 8px" }}>Share of your habits ticked off each day</p>
+              <p style={{ color: C.muted, fontSize: "14px", margin: "4px 0 8px" }}>Share of your habits ticked off each day</p>
 
               {trendView === "chart" ? (
                 <div style={{ width: "100%", height: "260px" }}>
@@ -602,7 +601,7 @@ export default function HabitTracker() {
                         dataKey="day"
                         tickLine={false}
                         axisLine={{ stroke: C.hair }}
-                        tick={{ fill: C.muted, fontSize: 12 }}
+                        tick={{ fill: C.muted, fontSize: 13 }}
                         ticks={xTicks}
                         interval={0}
                       />
@@ -613,20 +612,20 @@ export default function HabitTracker() {
                         tickLine={false}
                         axisLine={false}
                         width={44}
-                        tick={{ fill: C.muted, fontSize: 12 }}
+                        tick={{ fill: C.muted, fontSize: 13 }}
                       />
-                      <Tooltip content={<TrendTip />} cursor={{ stroke: C.taupe, strokeWidth: 1 }} />
+                      <Tooltip content={<TrendTip />} cursor={{ stroke: C.hair, strokeWidth: 1 }} />
                       <Area
                         type="monotone"
                         dataKey="pct"
-                        stroke={C.ink}
-                        strokeWidth={2}
+                        stroke={C.accent}
+                        strokeWidth={2.5}
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        fill={C.ink}
-                        fillOpacity={0.08}
+                        fill={C.accent}
+                        fillOpacity={0.12}
                         dot={false}
-                        activeDot={{ r: 5, fill: C.ink, stroke: C.surface, strokeWidth: 2 }}
+                        activeDot={{ r: 5, fill: C.accent, stroke: C.surface, strokeWidth: 2 }}
                         connectNulls={false}
                         isAnimationActive={animate}
                         animationDuration={500}
@@ -636,21 +635,21 @@ export default function HabitTracker() {
                           x={lastPoint.day}
                           y={lastPoint.pct}
                           r={5}
-                          fill={C.ink}
+                          fill={C.accent}
                           stroke={C.surface}
                           strokeWidth={2}
                           ifOverflow="visible"
-                          label={{ value: `${lastPoint.pct}%`, position: "right", offset: 10, fill: C.ink, fontSize: 12, fontWeight: 600 }}
+                          label={{ value: `${lastPoint.pct}%`, position: "right", offset: 10, fill: C.accent, fontSize: 13, fontWeight: 600 }}
                         />
                       )}
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
               ) : (
-                <div style={{ maxHeight: "260px", overflow: "auto", border: `1px solid ${C.hair}`, borderRadius: "8px" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+                <div style={{ maxHeight: "260px", overflow: "auto", border: `0.5px solid ${C.hair}`, borderRadius: "12px" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px" }}>
                     <thead>
-                      <tr style={{ background: C.sand, position: "sticky", top: 0 }}>
+                      <tr style={{ background: C.paper, position: "sticky", top: 0 }}>
                         {["Date", "Done", "Tracked", "Completion"].map((h) => (
                           <th key={h} style={{ padding: "8px 12px", textAlign: h === "Date" ? "left" : "right", color: C.ink }}>
                             {h}
@@ -683,7 +682,7 @@ export default function HabitTracker() {
         {/* Stats + breakdown */}
         {habits.length > 0 && (
           <div style={cardStyle}>
-            <h2 style={{ ...h2Style, marginBottom: "16px" }}>🧑‍🎓 Your Stats</h2>
+            <h2 style={{ ...h2Style, marginBottom: "16px" }}>Your Stats</h2>
             <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", marginBottom: "20px" }}>
               <Tile label="Perfect days" value={perfectDays} hint="every habit done" />
               <Tile label="Current streak" value={streak.current} hint={streak.current === 1 ? "day in a row" : "days in a row"} />
@@ -691,18 +690,18 @@ export default function HabitTracker() {
               <Tile label="Check-ins" value={totals.done} hint={`of ${totals.elapsed} so far this month`} />
             </div>
 
-            <h3 style={{ fontSize: "16px", margin: "0 0 10px", color: C.ink, fontWeight: 600 }}>By habit</h3>
+            <h3 style={{ fontSize: "17px", margin: "0 0 10px", color: C.ink, fontWeight: 600 }}>By habit</h3>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: "12px" }}>
               {perHabit.map((p) => (
-                <div key={p.id} style={{ backgroundColor: C.sand, border: `1px solid ${C.taupe}`, borderRadius: "12px", padding: "14px 16px" }}>
+                <div key={p.id} style={{ backgroundColor: C.paper, borderRadius: "16px", padding: "16px 18px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
-                    <span aria-hidden="true" style={{ fontSize: "18px" }}>{p.icon}</span>
+                    <span aria-hidden="true" style={{ fontSize: "19px" }}>{p.icon}</span>
                     <strong style={{ color: C.ink, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</strong>
                     {showTags && p.id === strongest.id && (
-                      <span style={{ fontSize: "11px", fontWeight: 700, background: C.ink, color: C.paper, borderRadius: "999px", padding: "2px 8px" }}>Strongest</span>
+                      <span style={{ fontSize: "12px", fontWeight: 700, background: C.accent, color: C.onAccent, borderRadius: "999px", padding: "2px 8px" }}>Strongest</span>
                     )}
                     {showTags && p.id === weakest.id && (
-                      <span style={{ fontSize: "11px", fontWeight: 700, background: C.surface, color: C.ink, border: `1px solid ${C.taupe}`, borderRadius: "999px", padding: "2px 8px" }}>Needs attention</span>
+                      <span style={{ fontSize: "12px", fontWeight: 700, background: "var(--red-soft)", color: C.danger, borderRadius: "999px", padding: "2px 8px" }}>Needs attention</span>
                     )}
                     <span style={{ marginLeft: "auto", fontWeight: 700, color: C.ink }}>{p.pct == null ? "—" : `${p.pct}%`}</span>
                   </div>
@@ -712,13 +711,13 @@ export default function HabitTracker() {
                     aria-valuemin={0}
                     aria-valuemax={100}
                     aria-valuenow={p.pct == null ? 0 : p.pct}
-                    style={{ height: "8px", background: C.surface, borderRadius: "999px", overflow: "hidden" }}
+                    style={{ height: "8px", background: C.sand, borderRadius: "999px", overflow: "hidden" }}
                   >
-                    <div style={{ width: `${p.pct || 0}%`, height: "100%", background: C.ink, borderRadius: "999px" }} />
+                    <div style={{ width: `${p.pct || 0}%`, height: "100%", background: C.accent, borderRadius: "999px", transition: "width .4s ease" }} />
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "12px", color: C.muted, marginTop: "8px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "13px", color: C.muted, marginTop: "8px" }}>
                     <span>{p.done} of {p.possible} days</span>
-                    <span>🔥 {p.currentStreak} now · best {p.bestStreak}</span>
+                    <span>{p.currentStreak} day streak · best {p.bestStreak}</span>
                   </div>
                 </div>
               ))}
@@ -726,6 +725,6 @@ export default function HabitTracker() {
           </div>
         )}
       </div>
-    </div>
+    </AppShell>
   );
 }

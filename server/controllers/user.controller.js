@@ -14,10 +14,33 @@ if (!admin.apps.length) {
   });
 }
 
+// ---------------------------------------------------------------------------
+// Activity helpers (feed the streak / consistency analytics)
+// ---------------------------------------------------------------------------
+const dayKey = (d = new Date()) => d.toISOString().slice(0, 10);
+const dayNumber = (key) => {
+  const [y, m, d] = key.split("-").map(Number);
+  return Math.round(Date.UTC(y, m - 1, d) / 86400000);
+};
+const markActive = async (userId) => {
+  try {
+    await User.updateOne({ _id: userId }, { $addToSet: { activityLog: dayKey() } });
+  } catch (err) {
+    console.error("Failed to log activity:", err.message);
+  }
+};
+const STANDARD_TOPICS = [
+  "Arrays", "Linked Lists", "Trees", "Graphs", "Dynamic Programming",
+  "Process Management", "Memory Management", "File Systems", "Synchronization",
+  "OSI Model", "TCP/IP", "Routing", "Network Security",
+  "ER Model", "Normalization", "SQL", "Transactions",
+  "CPU Organization", "Memory Organization", "I/O Organization",
+  "Probability", "Statistics", "Linear Algebra", "Calculus",
+];
+const cookieOptions = { httpOnly: true, secure: true, sameSite: "None" };
 
 const registerUser = async(req,res) => {
     try {
-        console.log("Received registration request with body:", req.body);
         const { name , email, password } = req.body;
 
         const user = await User.findOne({ email });
@@ -30,7 +53,6 @@ const registerUser = async(req,res) => {
         }
 
         const newUser = new User({ name ,email, password });
-        console.log("New user object created:", newUser);
 
         await newUser.save();
         console.log("New user saved successfully.");
@@ -128,16 +150,12 @@ const googleLoginUser = async (req, res) => {
 };
 const logoutUser = async(req,res) => {
     try {
-        const refreshToken = req.body.refreshToken;
-        if (!refreshToken)
-            return res.status(400).json({ message: "Refresh token not found" });
-        const user = await User.findOne({ refreshToken });
-        if (!user)
-            return res.status(400).json({ message: "User not found" });
-        user.refreshToken = "";
-        await user.save();
-        
-        return res.status(200).json({ message: "User logged out successfully" });
+        await User.updateOne({ _id: req.user._id }, { $set: { refreshToken: "" } });
+        return res
+            .clearCookie("accessToken", cookieOptions)
+            .clearCookie("refreshToken", cookieOptions)
+            .status(200)
+            .json({ message: "User logged out successfully" });
     } catch (error) {
         console.error("Error during logout:", error);
         return res.status(500).json({ message: "Internal server error" });
@@ -145,11 +163,10 @@ const logoutUser = async(req,res) => {
 }
 const userdetails = async(req,res) => {
     try {
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(req.user.id).select("-password -refreshToken");
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        console.log(user);
         return res.status(200).json({user});
     } catch (error) {
         console.error("Error fetching user details:", error);
@@ -158,24 +175,21 @@ const userdetails = async(req,res) => {
 }
 const mockscore = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id);
-        if (!user) {
+        const raw = req.body.marks;
+        const marks = Number(raw);
+        if (raw === "" || raw == null || !Number.isFinite(marks) || marks < 0 || marks > 100) {
+            return res.status(400).json({ message: "Marks must be a number between 0 and 100." });
+        }
+
+        const result = await User.updateOne({ _id: req.user._id }, { $push: { mockscore: marks } });
+        if (!result.matchedCount) {
             return res.status(404).json({ message: "User not found" });
         }
-
-        const marks = req.body.marks;
-
-        if (!Array.isArray(user.mockscore)) {
-            user.mockscore = []; // initialize if not an array
-        }
-      console.log(user.mockscore);
-
-        user.mockscore.push(marks); // append new score
-        await user.save();
+        await markActive(req.user._id);
 
         return res.status(200).json("Marks updated successfully");
     } catch (error) {
-        console.error("Error fetching user details:", error);
+        console.error("Error saving mock score:", error);
         return res.status(500).json({ message: "Internal server error" });
     }
 };
@@ -185,7 +199,9 @@ const getmockscore = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }
-        return res.status(200).json(user.mockscore);
+        return res.status(200).json(
+            (user.mockscore || []).filter(n => typeof n === "number" && Number.isFinite(n))
+        );
         
     } catch (error) {
         console.error("Error fetching user details:", error);
@@ -240,7 +256,11 @@ const addTask = async (req, res) => {
   try {
     const user = req.user; // You already set this in verifyToken
 
-    const { subject, title } = req.body;
+    const subject = String(req.body.subject || "").trim();
+    const title = String(req.body.title || "").trim();
+    if (!subject || !title) {
+      return res.status(400).json({ message: "Subject and title are required" });
+    }
     const newTask = {
       subject,
       title,
@@ -249,6 +269,7 @@ const addTask = async (req, res) => {
 
     user.tasks.push(newTask);
     await user.save();
+    await markActive(user._id);
 
     res.status(201).json({ message: "Task added successfully", tasks: user.tasks });
   } catch (err) {
@@ -272,6 +293,7 @@ const updatetasks = async (req, res) => {
     if (title) user.tasks[taskIndex].title = title;
 
     await user.save();
+    if (completed === true) await markActive(user._id);
 
     res.status(200).json({ message: "Task updated successfully", task: user.tasks[taskIndex] });
   } catch (err) {
@@ -292,10 +314,11 @@ const getTasks = async (req, res) => {
 const deleteTask = async (req, res) => {
   try {
     const user = req.user;
-    const { taskId } = req.body;
+    const { taskId, taskIds } = req.body;
+    const ids = new Set((Array.isArray(taskIds) ? taskIds : [taskId]).filter(Boolean).map(String));
 
     const originalLength = user.tasks.length;
-    user.tasks = user.tasks.filter(task => task._id.toString() !== taskId);
+    user.tasks = user.tasks.filter(task => !ids.has(task._id.toString()));
 
     if (user.tasks.length === originalLength) {
       return res.status(404).json({ message: "Task not found" });
@@ -317,8 +340,10 @@ const saveNotes = async (req, res) => {
       return res.status(400).json({ message: "Notes must be an array" });
     }
 
+    const grew = notes.length > user.notes.length;
     user.notes = notes;
     await user.save();
+    if (grew) await markActive(user._id);
 
     res.status(200).json({ message: "Notes updated successfully", notes: user.notes });
   } catch (err) {
@@ -367,40 +392,45 @@ const getAnalytics = async (req, res) => {
     // Subjects Completed
     const totalTopics = user.syllabus?.length || 0;
     const completedTopics = user.syllabus?.filter(t => t.status === "Completed").length || 0;
-    const subjectsCompleted = totalTopics ? Math.round((completedTopics / totalTopics) * 100) : 0;
-
-    // Practice Accuracy
-    const scores = user.mockscore || [];
-    const totalCorrect = scores.reduce((sum, s) => sum + s.correct, 0);
-    const totalQuestions = scores.reduce((sum, s) => sum + s.total, 0);
-    const accuracy = totalQuestions ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
-
-    // Best Streak
-    const dates = (user.activityLog || []).map(d => new Date(d)).sort((a, b) => a - b);
-    let bestStreak = 0, currentStreak = 1;
-    for (let i = 1; i < dates.length; i++) {
-      const diff = (dates[i] - dates[i - 1]) / (1000 * 3600 * 24);
-      if (diff === 1) currentStreak++;
-      else currentStreak = 1;
-      bestStreak = Math.max(bestStreak, currentStreak);
+    let subjectsCompleted;
+    if (totalTopics) {
+      subjectsCompleted = Math.round((completedTopics / totalTopics) * 100);
+    } else {
+      // The dashboard stores completed topics as free text, so match them
+      // against the standard syllabus.
+      const doneSet = new Set((user.topics || []).map(t => t.trim().toLowerCase()));
+      const done = STANDARD_TOPICS.filter(t => doneSet.has(t.toLowerCase())).length;
+      subjectsCompleted = Math.round((done / STANDARD_TOPICS.length) * 100);
     }
 
-    // Consistency (last 30 days)
-    const last30 = new Set();
-    const today = new Date();
-    for (let i = 0; i < 30; i++) {
-      const d = new Date(today);
-      d.setDate(today.getDate() - i);
-      last30.add(d.toISOString().slice(0, 10));
-    }
+    // Average mock-test score (stored as plain numbers, 0-100)
+    const scores = (user.mockscore || []).filter(n => typeof n === "number" && Number.isFinite(n));
+    const accuracy = scores.length
+      ? Math.min(100, Math.max(0, Math.round(scores.reduce((a, b) => a + b, 0) / scores.length)))
+      : 0;
 
-    const activeDays = (user.activityLog || []).filter(date => last30.has(date)).length;
+    // Streaks, from the unique days with activity
+    const days = [...new Set((user.activityLog || []).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)))]
+      .map(dayNumber)
+      .sort((a, b) => a - b);
+    let bestStreak = 0, run = 0;
+    for (let i = 0; i < days.length; i++) {
+      run = i > 0 && days[i] - days[i - 1] === 1 ? run + 1 : 1;
+      bestStreak = Math.max(bestStreak, run);
+    }
+    const todayNum = dayNumber(dayKey());
+    const lastDay = days[days.length - 1];
+    const currentStreak = lastDay !== undefined && todayNum - lastDay <= 1 ? run : 0;
+
+    // Consistency: share of the last 30 days (including today) with activity
+    const activeDays = days.filter(d => d > todayNum - 30 && d <= todayNum).length;
     const consistency = Math.round((activeDays / 30) * 100);
 
     res.status(200).json({
       subjectsCompleted,
       accuracy,
       bestStreak,
+      currentStreak,
       consistency
     });
   } catch (err) {
@@ -417,17 +447,28 @@ const getAnalytics = async (req, res) => {
 const topicstracker = async (req, res) => {
   try {
     const { completedTopics } = req.body;
+    if (!Array.isArray(completedTopics)) {
+      return res.status(400).json({ message: "completedTopics must be an array" });
+    }
     const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ✅ Replace with updated list (deduplicated and trimmed)
+    // Replace with updated list (trimmed, case-insensitively de-duplicated)
+    const seen = new Set();
+    const previous = user.topics.length;
     user.topics = completedTopics
-      .map(t => t.trim())
-      .filter((t, i, arr) => t !== '' && arr.indexOf(t) === i); // remove duplicates
+      .map(t => String(t).trim().slice(0, 100))
+      .filter(t => {
+        const key = t.toLowerCase();
+        if (!t || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
 
     await user.save();
+    if (user.topics.length > previous) await markActive(user._id);
     return res.status(200).json({ topics: user.topics });
   } catch (error) {
     console.error("Error saving topics:", error);

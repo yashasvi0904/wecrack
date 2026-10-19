@@ -1,0 +1,645 @@
+/*
+  "Ultra" theme for the dashboard and habit tracker: dark, warm, translucent.
+  Everything is scoped to .apple-ui so the other screens are untouched.
+*/
+.apple-ui {
+  color-scheme: dark;
+  --bg: #0a0706;
+  --panel: rgba(26, 21, 20, 0.62);
+  --card: rgba(255, 255, 255, 0.05);
+  --card-solid: #1b1716;
+  --label: #f6f2ef;
+  --label-2: #d0c8c4;
+  --label-3: #988f8a;
+  --fill: rgba(255, 255, 255, 0.06);
+  --fill-2: rgba(255, 255, 255, 0.11);
+  --separator: rgba(255, 255, 255, 0.1);
+  --accent: #ff7a5c;
+  --accent-soft: rgba(255, 122, 92, 0.16);
+  --on-accent: #1b0d09;
+  --blue: #5ac8fa;
+  --violet: #8b7cff;
+  --pink: #ff6fae;
+  --green: #5fd68a;
+  --orange: #ffb15c;
+  --red: #ff6b6b;
+  --red-soft: rgba(255, 107, 107, 0.15);
+  --focus: rgba(255, 122, 92, 0.4);
+  --glass: rgba(34, 28, 27, 0.72);
+  --overlay: rgba(0, 0, 0, 0.55);
+  --blur: saturate(160%) blur(28px);
+  --shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), inset 0 0 0 0.5px rgba(255, 255, 255, 0.06),
+    0 18px 44px rgba(0, 0, 0, 0.4);
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.6);
+
+  font-family: "Outfit", -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.45;
+  letter-spacing: 0;
+  color: var(--label);
+  background: var(--bg);
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Warm copper streaks on near-black, fixed behind everything */
+.apple-ui::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(48% 42% at 0% 72%, rgba(222, 122, 74, 0.55), transparent 62%),
+    radial-gradient(42% 52% at 100% 88%, rgba(236, 176, 118, 0.5), transparent 62%),
+    radial-gradient(34% 30% at 62% 0%, rgba(150, 70, 40, 0.38), transparent 70%),
+    repeating-linear-gradient(118deg, transparent 0 54px, rgba(255, 190, 130, 0.045) 54px 57px),
+    #0a0706;
+}
+
+.apple-ui *,
+.apple-ui *::before,
+.apple-ui *::after {
+  box-sizing: border-box;
+}
+.apple-ui h1,
+.apple-ui h2,
+.apple-ui h3,
+.apple-ui h4 {
+  color: var(--label);
+  letter-spacing: -0.01em;
+}
+
+/* Controls ---------------------------------------------------------------- */
+.apple-ui button,
+.apple-ui input,
+.apple-ui select,
+.apple-ui textarea {
+  font-family: inherit;
+  letter-spacing: inherit;
+}
+.apple-ui button {
+  transition: transform 0.15s ease, background-color 0.2s ease, opacity 0.2s ease, filter 0.2s ease,
+    color 0.2s ease;
+}
+.apple-ui button:not(:disabled):hover {
+  filter: brightness(1.12);
+}
+.apple-ui button:not(:disabled):active {
+  transform: scale(0.97);
+}
+.apple-ui button:focus-visible,
+.apple-ui a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.apple-ui input,
+.apple-ui select,
+.apple-ui textarea {
+  background: var(--fill);
+  color: var(--label);
+  border: 1px solid var(--separator);
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.apple-ui input:focus,
+.apple-ui select:focus,
+.apple-ui textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus);
+}
+.apple-ui input::placeholder,
+.apple-ui textarea::placeholder {
+  color: var(--label-3);
+}
+.apple-ui select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 34px;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1.5l5 5 5-5' fill='none' stroke='%23988f8a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+}
+.apple-ui option {
+  color: #f6f2ef;
+  background: #1b1716;
+}
+
+/* Glass helpers ----------------------------------------------------------- */
+.apple-glass {
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+}
+
+/* ---- Shell: sidebar + main panel ---------------------------------------- */
+.ux-shell {
+  display: grid;
+  grid-template-columns: 264px minmax(0, 1fr);
+  gap: 20px;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 24px;
+  min-height: 100vh;
+  align-items: start;
+}
+.ux-side {
+  position: sticky;
+  top: 24px;
+  height: calc(100vh - 48px);
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  padding: 28px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+}
+.ux-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 10px 22px;
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.ux-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ux-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-radius: 16px;
+  padding: 12px 14px;
+  color: var(--label-3);
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+}
+.ux-nav-item:hover {
+  color: var(--label);
+  background: var(--fill);
+}
+.ux-nav-item.active {
+  color: var(--label);
+  background: var(--fill-2);
+}
+.ux-nav-item.active svg {
+  color: var(--accent);
+}
+.ux-nav-sep {
+  height: 1px;
+  background: var(--separator);
+  margin: 10px 8px;
+}
+.ux-side-widget {
+  margin-top: auto;
+  background: var(--card);
+  border-radius: 24px;
+  padding: 16px 12px 18px;
+  text-align: center;
+  box-shadow: inset 0 0 0 1px var(--separator);
+}
+
+.ux-main {
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  padding: 28px 32px 40px;
+  min-width: 0;
+}
+.ux-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.ux-tabs {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+}
+.ux-tab {
+  background: none;
+  border: 0;
+  color: var(--label-3);
+  font-size: 26px;
+  font-weight: 500;
+  padding: 0 0 8px;
+  cursor: pointer;
+  position: relative;
+}
+.ux-tab.active {
+  color: var(--label);
+}
+.ux-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 22px;
+  height: 8px;
+  transform: translateX(-50%);
+  background: var(--accent);
+  clip-path: polygon(0 0, 50% 100%, 100% 0, 85% 0, 50% 60%, 15% 0);
+}
+.ux-top-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.ux-date {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--label);
+}
+.ux-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--on-accent);
+  background: linear-gradient(135deg, #ffb15c, #ff6fae);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+}
+
+/* ---- Content blocks ------------------------------------------------------ */
+.ux-card {
+  background: var(--card);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  min-width: 0;
+}
+.ux-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  font-size: 26px;
+  font-weight: 500;
+  text-transform: lowercase;
+}
+.ux-title::before {
+  content: "";
+  width: 4px;
+  height: 18px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+.ux-sub {
+  color: var(--label-2);
+  font-size: 15px;
+  margin: -10px 0 16px;
+}
+.ux-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 32px;
+}
+.ux-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 22px 16px 22px;
+  min-height: 330px;
+}
+.ux-stat-head {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: var(--label-2);
+}
+.ux-stat .ring-wrap {
+  margin: 16px 0 14px;
+}
+.ux-big {
+  font-size: 46px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 4px;
+}
+.ux-big small {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--label-2);
+  margin-top: 6px;
+}
+.ux-cap {
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--label);
+}
+.ux-cap.muted {
+  color: var(--label-2);
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 14px;
+}
+.ux-two {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: 18px;
+  margin-bottom: 32px;
+}
+.ux-library {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
+/* Lists / rows */
+.ux-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 6px;
+  border-bottom: 1px solid var(--separator);
+}
+.ux-row:last-child {
+  border-bottom: 0;
+}
+.ux-row-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+.ux-row-title {
+  font-weight: 500;
+  font-size: 16px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ux-row.done .ux-row-title {
+  text-decoration: line-through;
+  color: var(--label-3);
+}
+.ux-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--fill);
+  box-shadow: inset 0 0 0 1px var(--separator);
+  color: var(--label-2);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.ux-chip.accent {
+  background: var(--accent-soft);
+  color: var(--accent);
+  box-shadow: none;
+}
+.ux-check {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--label-3);
+  background: transparent;
+  color: var(--on-accent);
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.ux-check.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.ux-empty {
+  text-align: center;
+  color: var(--label-2);
+  padding: 22px;
+  background: var(--fill);
+  border-radius: 20px;
+}
+
+/* Buttons */
+.ux-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: 999px;
+  padding: 11px 22px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--accent);
+  color: var(--on-accent);
+  text-decoration: none;
+}
+.ux-btn.ghost {
+  background: var(--fill-2);
+  color: var(--label);
+}
+.ux-btn.danger {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.ux-btn.sm {
+  padding: 7px 16px;
+  font-size: 14px;
+}
+.ux-btn.block {
+  width: 100%;
+}
+.ux-icon-btn {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 50%;
+}
+.ux-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.ux-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+.ux-form-row {
+  display: flex;
+  gap: 10px;
+}
+.ux-form-row > * {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Big-number strip */
+.ux-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+.ux-kpi .ux-big {
+  justify-content: flex-start;
+  font-size: 38px;
+}
+.ux-kpi .ux-cap {
+  margin-top: 4px;
+}
+
+/* Tables */
+.ux-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.ux-table th {
+  text-align: left;
+  color: var(--label-2);
+  font-weight: 500;
+  padding: 8px 10px;
+}
+.ux-table td {
+  padding: 10px;
+  border-top: 1px solid var(--separator);
+}
+
+/* Segmented pills */
+.ux-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+/* Music pill */
+.ux-music {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px 6px 10px;
+  border-radius: 999px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-float), inset 0 0 0 1px var(--separator);
+}
+.ux-music select {
+  background-color: transparent;
+  border: 0;
+  width: 110px;
+  padding: 6px 28px 6px 8px;
+  font-size: 14px;
+}
+
+/* ---- Responsive ---------------------------------------------------------- */
+@media (max-width: 1280px) {
+  .ux-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .ux-two {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 980px) {
+  .ux-shell {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 12px;
+  }
+  .ux-side {
+    position: static;
+    height: auto;
+    padding: 16px;
+    border-radius: 26px;
+  }
+  .ux-brand {
+    padding-bottom: 8px;
+  }
+  .ux-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .ux-nav-item {
+    width: auto;
+    padding: 9px 14px;
+  }
+  .ux-nav-sep,
+  .ux-side-widget {
+    display: none;
+  }
+  .ux-main {
+    padding: 20px 16px 28px;
+    border-radius: 26px;
+  }
+}
+@media (max-width: 560px) {
+  .ux-stats {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ux-kpis {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ux-tab {
+    font-size: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .apple-ui *,
+  .apple-ui *::before,
+  .apple-ui *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* Page frame */
+body:has(.apple-ui) {
+  margin: 0;
+  background: #0a0706;
+}

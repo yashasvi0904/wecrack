@@ -4,17 +4,18 @@ import {
   Plus,
   BookOpen,
   TrendingUp,
-  FileText,
-  Target,
-  Heart,
-  Settings,
-  CheckCircle,
-  Circle,
+  Flame,
+  FlaskConical,
+  Sparkles,
+  Check,
   Minus,
+  Play,
+  Pause,
+  Trash2,
 } from "lucide-react";
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
@@ -22,12 +23,115 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import HabitSummaryCard from "../HabitTracker/HabitSummaryCard";
+import AppShell from "../../components/AppShell";
+import { Ring } from "../../components/ui";
+
+// Light tooltip bubble for the scores chart
+const ScoreTip = ({ active, payload }) => {
+  if (!active || !payload || !payload.length) return null;
+  const { test, score } = payload[0].payload;
+  return (
+    <div
+      style={{
+        background: "#f6f2ef",
+        color: "#1b1716",
+        borderRadius: "14px",
+        padding: "8px 14px",
+        fontWeight: 600,
+        fontSize: "16px",
+        boxShadow: "0 8px 24px rgba(0,0,0,0.4)",
+      }}
+    >
+      Test {test}: {score}%
+    </div>
+  );
+};
+
+// Frosted-glass sheet that shows a PDF (syllabus, mock test or previous paper).
+const PdfModal = ({ open, src, title, onClose }) => {
+  useEffect(() => {
+    if (!open) return undefined;
+    const onKey = (e) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, onClose]);
+
+  if (!open) return null;
+  return (
+    <div
+      className="apple-glass"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        backgroundColor: "var(--overlay)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "16px",
+        zIndex: 10000,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "var(--card-solid)",
+          borderRadius: "20px",
+          boxShadow: "var(--shadow-float)",
+          width: "min(960px, 100%)",
+          height: "min(88vh, 900px)",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: "14px 16px 14px 20px",
+            borderBottom: "0.5px solid var(--separator)",
+          }}
+        >
+          <strong style={{ fontSize: "17px", color: "var(--label)" }}>{title}</strong>
+          <button
+            onClick={onClose}
+            aria-label="Close"
+            style={{
+              width: "30px",
+              height: "30px",
+              borderRadius: "999px",
+              border: "none",
+              background: "var(--fill-2)",
+              color: "var(--label-2)",
+              cursor: "pointer",
+              fontSize: "15px",
+              lineHeight: 1,
+            }}
+          >
+            ✕
+          </button>
+        </div>
+        <iframe
+          src={src}
+          title={title}
+          style={{ border: "none", flex: 1, width: "100%", background: "#fff" }}
+        />
+      </div>
+    </div>
+  );
+};
 
 const GateDashboard = () => {
   const [analytics, setAnalytics] = useState({
     subjectsCompleted: 0,
     accuracy: 0,
     bestStreak: 0,
+    currentStreak: 0,
     consistency: 0,
   });
   const quoteList = [
@@ -79,7 +183,7 @@ const GateDashboard = () => {
       const res = await axios.get(process.env.REACT_APP_GET_ANALYTICS, {
         withCredentials: true,
       });
-      setAnalytics(res.data);
+      setAnalytics((prev) => ({ ...prev, ...res.data }));
     } catch (err) {
       console.error("Failed to fetch analytics:", err);
     }
@@ -151,17 +255,7 @@ const GateDashboard = () => {
     fetchMotivationalQuote();
 
     fetchAnalytics();
-    const pingBackend = () => {
-    axios.get('https://wecrack-gate.onrender.com/ping')
-      .then(res => console.log('[Ping OK]', res.data.status))
-      .catch(err => console.error('[Ping Error]', err.message));
-  };
-
-  // Run immediately and then every 10 mins
-  pingBackend();
-  const interval = setInterval(pingBackend, 10 * 60 * 1000);
-
-  return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchTasks = async () => {
@@ -176,76 +270,52 @@ const GateDashboard = () => {
   };
 
   const handleAddTask = async () => {
-    const subject = prompt("Enter subject (e.g. DSA, OS, DBMS):");
-    const title = prompt("Enter task title:");
+    const subject = newTask.subject.trim();
+    const title = newTask.title.trim();
 
     if (!subject || !title) {
       alert("Both subject and title are required.");
       return;
     }
 
-    const newTaskItem = {
-      subject,
-      title,
-
-      completed: false,
-    };
     try {
       const response = await axios.post(
-        process.env.REACT_APP_ADD_TASK
-        ,
-        newTaskItem,
-        {
-          withCredentials: true,
-        }
+        process.env.REACT_APP_ADD_TASK,
+        { subject, title },
+        { withCredentials: true }
       );
-      alert(response.data.message || "Task added successfully");
-      setTasks((prev) => [...(prev || []), { ...newTaskItem, id: Date.now() }]);
+      // Use the server's list so every task has its real _id
+      setTasks(response.data.tasks || []);
+      setNewTask({ subject: newTask.subject, title: "", time: "" });
+      fetchAnalytics();
     } catch (err) {
       console.error("Error adding task:", err);
       alert("Failed to add task.");
     }
   };
   const handleDeleteTask = async () => {
-    if (tasks.length === 0) {
-      alert("No tasks to delete.");
+    const completedIds = tasks.filter((t) => t.completed).map((t) => t._id);
+    if (completedIds.length === 0) {
+      alert("No completed tasks to delete.");
       return;
     }
-
-    const taskTitles = tasks.map((t, i) => `${i + 1}. ${t.title}`).join("\n");
-    const choice = prompt(
-      `Enter the number of the task to delete:\n${taskTitles}`
-    );
-
-    const index = parseInt(choice) - 1;
-    if (isNaN(index) || index < 0 || index >= tasks.length) {
-      alert("Invalid selection.");
-      return;
-    }
-
-    const taskId = tasks[index]._id;
 
     try {
       const res = await axios.post(
-        process.env.REACT_APP_DELETE_TASK
-       ,
-        {
-          taskId,
-        },
-        {
-          withCredentials: true,
-        }
+        process.env.REACT_APP_DELETE_TASK,
+        { taskIds: completedIds },
+        { withCredentials: true }
       );
 
-      setTasks(res.data.tasks);
-      alert("Task deleted!");
+      setTasks(res.data.tasks || []);
     } catch (err) {
       console.error("Delete failed:", err);
-      alert("Error deleting task.");
+      alert("Error deleting tasks.");
     }
   };
 
   const toggleTask = async (taskId) => {
+    const previousTasks = tasks;
     const updatedTasks = tasks.map((task) =>
       task._id === taskId ? { ...task, completed: !task.completed } : task
     );
@@ -256,8 +326,10 @@ const GateDashboard = () => {
       await axios.post(process.env.REACT_APP_TOGGLE_TASK, toggledTask, {
         withCredentials: true,
       });
+      fetchAnalytics();
     } catch (err) {
       console.error("Error updating task:", err);
+      setTasks(previousTasks); // undo the optimistic update
       alert("Failed to update task status.");
     }
   };
@@ -303,11 +375,7 @@ const GateDashboard = () => {
 
     const updatedNotes = [
       ...notes,
-      {
-        title: newNote.title,
-        content: newNote.content,
-        id: Date.now(), // Add some unique ID client-side
-      },
+      { title: newNote.title.trim(), content: newNote.content.trim() },
     ];
 
     try {
@@ -316,10 +384,10 @@ const GateDashboard = () => {
         { notes: updatedNotes },
         { withCredentials: true }
       );
-      setNotes(res.data.notes); // Optional, can skip and use `updatedNotes`
+      setNotes(res.data.notes);
       setNewNote({ title: "", content: "" });
       setShowNoteForm(false);
-      alert("Note added!");
+      fetchAnalytics();
     } catch (err) {
       console.error("Failed to save notes:", err);
       alert("Something went wrong.");
@@ -340,16 +408,18 @@ const GateDashboard = () => {
   //   }
   // };
 
-  const handleDeleteNote = async (noteId) => {
-    const updatedNotes = notes.filter((note) => note.id !== noteId);
+  // Removes the most recent note (the button is labelled "Delete Last Note")
+  const handleDeleteNote = async () => {
+    if (notes.length === 0) return;
+    const updatedNotes = notes.slice(0, -1);
 
     try {
       const res = await axios.post(
         process.env.REACT_APP_ADD_NOTES,
-        { notes: [] },
+        { notes: updatedNotes },
         { withCredentials: true }
       );
-      setNotes(res.data.notes); // Or just setNotes(updatedNotes)
+      setNotes(res.data.notes);
     } catch (err) {
       console.error("Failed to save updated notes:", err);
       alert("Delete failed.");
@@ -357,20 +427,23 @@ const GateDashboard = () => {
   };
 
   const SendScore = async () => {
-    const score = prompt("Enter your score:");
-    if (!score || isNaN(score)) {
-      alert("Please enter a valid number.");
+    const score = prompt("Enter your score (0-100):");
+    if (score === null) return; // cancelled
+    const value = Number(score);
+    if (score.trim() === "" || !Number.isFinite(value) || value < 0 || value > 100) {
+      alert("Please enter a number between 0 and 100.");
       return;
     }
 
     try {
-      const response = await axios.post(
-        process.env.REACT_APP_SEND_SCORE
-        ,
-        { marks: Number(score) },
+      await axios.post(
+        process.env.REACT_APP_SEND_SCORE,
+        { marks: value },
         { withCredentials: true }
       );
-      alert(response.data.message || "Score sent successfully");
+      // Refresh the table, stats and analytics with the new score
+      await handleMarks();
+      fetchAnalytics();
     } catch (err) {
       console.error("Error sending score:", err.response?.data || err.message);
       alert("Failed to send score.");
@@ -382,30 +455,14 @@ const GateDashboard = () => {
       const response = await axios.get(process.env.REACT_APP_HANDLE_MARKS, {
         withCredentials: true,
       });
-      console.log(response.data);
-      setMockTestMarks(response.data);
-      console.log(response.data);
+      setMockTestMarks(
+        Array.isArray(response.data)
+          ? response.data.filter((n) => typeof n === "number" && isFinite(n))
+          : []
+      );
     } catch (err) {
       console.error("Error fetching marks:", err);
     }
-  };
-
-  const cardStyle = {
-    background: "white",
-    borderRadius: "12px",
-    padding: "20px",
-    boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
-    marginBottom: "16px",
-  };
-  const buttonStyle = {
-    background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    padding: "10px 16px",
-    cursor: "pointer",
-    fontSize: "14px",
-    fontWeight: "500",
   };
 
   // Handles GATE branch change, fetches PDF, converts to HTML (mock), and sends to backend
@@ -418,13 +475,6 @@ const GateDashboard = () => {
       `/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, "");
     setSyllabusPDF(pdfPath);
     setShowSyllabusModal(true);
-
-    try {
-      const response = await fetch(pdfPath);
-      const blob = await response.blob();
-    } catch (err) {
-      console.error("Error processing syllabus PDF:", err);
-    }
   };
 
   // Toggle the completed status of a task and update backend
@@ -439,7 +489,6 @@ const GateDashboard = () => {
           }
         );
         setTopicList(res.data.topics || []);
-        console.log(res.data.topics);
       } catch (err) {
         console.error("Error fetching topics:", err);
       }
@@ -449,43 +498,53 @@ const GateDashboard = () => {
   }, []);
 
   const handleAddTopic = async () => {
-    if (!newTopic.trim()) return;
+    const topic = newTopic.trim();
+    if (!topic) return;
+    if (topicList.some((t) => t.toLowerCase() === topic.toLowerCase())) {
+      alert("That topic is already in your list.");
+      return;
+    }
 
-    const updatedTopics = [...topicList, newTopic.trim()];
+    const previousTopics = topicList;
+    const updatedTopics = [...topicList, topic];
     setTopicList(updatedTopics);
     setNewTopic("");
 
     try {
       await axios.post(
-       process.env.REACT_APP_ADD_TOPICS,
+        process.env.REACT_APP_ADD_TOPICS,
         {
           branch: branch.split(" - ")[0],
           completedTopics: updatedTopics,
         },
         { withCredentials: true }
       );
-
-      alert("Topic added and saved!");
+      fetchAnalytics();
     } catch (err) {
       console.error("Error updating topics:", err);
+      setTopicList(previousTopics);
       alert("Failed to update.");
     }
   };
   const handleDeleteTopic = async (topicToDelete) => {
+    const previousTopics = topicList;
     const updated = topicList.filter((topic) => topic !== topicToDelete);
     setTopicList(updated);
 
     try {
       await axios.post(
-       process.env.REACT_APP_DELETE_TOPICS,
+        process.env.REACT_APP_DELETE_TOPICS,
         {
           completedTopics: updated,
           branch: branch.split(" - ")[0],
         },
         { withCredentials: true }
       );
+      fetchAnalytics();
     } catch (err) {
       console.error("Failed to sync deleted topic:", err);
+      setTopicList(previousTopics);
+      alert("Failed to delete the topic.");
     }
   };
 
@@ -505,7 +564,7 @@ const GateDashboard = () => {
   useEffect(() => {
     if (isTimerRunning && timerTime > 0) {
       timerInterval.current = setInterval(() => {
-        setTimerTime((prev) => prev - 1);
+        setTimerTime((prev) => Math.max(prev - 1, 0));
       }, 1000);
     } else {
       clearInterval(timerInterval.current);
@@ -514,32 +573,30 @@ const GateDashboard = () => {
     return () => clearInterval(timerInterval.current);
   }, [isTimerRunning, timerTime]);
 
+  // Stop the timer once it reaches zero
+  useEffect(() => {
+    if (isTimerRunning && timerTime === 0) setIsTimerRunning(false);
+  }, [isTimerRunning, timerTime]);
+
+  const startTimer = () => {
+    if (timerTime > 0) {
+      setIsTimerRunning(true); // resume after a pause
+      return;
+    }
+    const seconds = Math.floor(Number(timerInput));
+    if (!Number.isFinite(seconds) || seconds <= 0) {
+      alert("Enter the time in seconds (greater than 0).");
+      return;
+    }
+    setTimerTime(seconds);
+    setIsTimerRunning(true);
+  };
+
   const formatTime = (time) => {
     const min = String(Math.floor(time / 60)).padStart(2, "0");
     const sec = String(time % 60).padStart(2, "0");
     return `${min}:${sec}`;
   };
-  const buttonStyle1 = (bgColor) => ({
-    padding: "10px 16px",
-    backgroundColor: bgColor,
-    color: "white",
-    border: "none",
-    borderRadius: "8px",
-    fontWeight: "600",
-    fontSize: "14px",
-    cursor: "pointer",
-    transition: "background-color 0.3s ease",
-  });
-  const inputStyle = {
-    backgroundColor: "#F2F2F2",
-    border: "2px solid #EAE4D5",
-    borderRadius: "8px",
-    padding: "12px 16px",
-    fontSize: "14px",
-    outline: "none",
-    transition: "border-color 0.3s ease",
-  };
-
   // songs
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -566,56 +623,52 @@ const GateDashboard = () => {
     setIsPlaying(!isPlaying);
   };
 
-  const switchSong = () => {
-    const nextIndex = (currentSongIndex + 1) % songs.length;
-    setCurrentSongIndex(nextIndex);
+  const switchSong = (index) => {
+    const wasPlaying = isPlaying;
+    setCurrentSongIndex(index);
     setIsPlaying(false);
 
-    // Delay to allow state update
-    setTimeout(() => {
-      audioRef.current.play();
-      setIsPlaying(true);
-    }, 100);
+    // Delay to let the new <audio> source load, then resume if it was playing
+    if (wasPlaying) {
+      setTimeout(() => {
+        audioRef.current
+          ?.play()
+          .then(() => setIsPlaying(true))
+          .catch((err) => console.error("Audio play error:", err));
+      }, 100);
+    }
   };
 
-  // Spotify
+  // Mock-score numbers shared by the chart and the KPI strip
+  const scoreData = mockTestMarks.map((score, i) => ({ test: i + 1, score }));
+  const highest = mockTestMarks.length ? Math.max(...mockTestMarks) : 0;
+  const average = mockTestMarks.length
+    ? Math.round(mockTestMarks.reduce((a, b) => a + b, 0) / mockTestMarks.length)
+    : 0;
+  const streakRing = Math.min(
+    100,
+    ((analytics.currentStreak || 0) / Math.max(analytics.bestStreak || 0, 7)) * 100
+  );
+
+  const pyqs = [
+    { year: "2023", file: "gate 2023.pdf" },
+    { year: "2022", file: "gate 2022.pdf" },
+    { year: "2021 Set 1", file: "gate 2021 set 1.pdf" },
+    { year: "2021 Set 2", file: "gate 2021 set 2.pdf" },
+    { year: "2020 (CSE)", file: "gate 2020 cse.pdf" },
+    { year: "2019 (CSE)", file: "gate 2019 cse.pdf" },
+  ];
 
   return (
-    <div
-      style={{
-        background: "linear-gradient(135deg, #F2F2F2 0%, #EAE4D5 100%)",
-        minHeight: "100vh",
-        padding: "20px",
-      }}
-    >
+    <div className="apple-ui">
       <audio ref={audioRef} src={songs[currentSongIndex].file} loop />
 
-      {/* Music Player */}
-      <div
-        style={{
-          position: "fixed",
-          top: "20px",
-          right: "20px",
-          backgroundColor: "#EAE4D5",
-          padding: "16px 20px",
-          borderRadius: "16px",
-          boxShadow: "0 6px 20px rgba(0, 0, 0, 0.1)",
-          zIndex: 9999,
-          display: "flex",
-          alignItems: "center",
-          gap: "16px",
-          border: "1px solid #B6B09F",
-        }}
-      >
+      {/* Music player */}
+      <div className="ux-music">
         <select
+          aria-label="Choose a song"
           value={currentSongIndex}
           onChange={(e) => switchSong(Number(e.target.value))}
-          style={{
-            ...inputStyle,
-            width: "140px",
-            fontSize: "13px",
-            padding: "8px 12px",
-          }}
         >
           {songs.map((song, index) => (
             <option key={index} value={index}>
@@ -624,223 +677,250 @@ const GateDashboard = () => {
           ))}
         </select>
         <button
+          type="button"
+          className="ux-btn ux-icon-btn"
           onClick={togglePlay}
-          style={{
-            ...buttonStyle,
-            backgroundColor: isPlaying ? "#000000" : "#B6B09F",
-            color: isPlaying ? "#F2F2F2" : "#000000",
-            padding: "8px 16px",
-            fontSize: "13px",
-          }}
+          aria-label={isPlaying ? "Pause music" : "Play music"}
         >
-          {isPlaying ? "⏸️" : "▶️"}
+          {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
         </button>
       </div>
 
-      <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
-        {/* Header */}
-        <div style={cardStyle}>
-          <h1
-            style={{
-              fontSize: "32px",
-              margin: "0 0 8px 0",
-              color: "#000000",
-              fontWeight: "700",
-            }}
-          >
-            👋 Welcome back, {user1}!
+      <AppShell
+        bare
+        active="dashboard"
+        userName={user1}
+        tabs={[
+          { label: "Me", id: "overview" },
+          { label: "Library", id: "library" },
+        ]}
+      >
+        <div id="overview" style={{ marginBottom: "26px" }}>
+          <h1 style={{ fontSize: "42px", fontWeight: 500, margin: 0, letterSpacing: "-0.02em", lineHeight: 1.1 }}>
+            Welcome back{user1 ? `, ${user1}` : ""}
           </h1>
-          <p
-            style={{
-              color: "#B6B09F",
-              margin: 0,
-              fontSize: "16px",
-              fontWeight: "500",
-            }}
-          >
-            Let's crack GATE with focus and consistency!
+          <p style={{ color: "var(--label-2)", margin: "8px 0 0", fontSize: "18px" }}>
+            Let's crack GATE with focus and consistency.
           </p>
         </div>
 
-        {/* Smart Planner */}
-        <div style={cardStyle}>
-          <h2
-            style={{
-              fontSize: "22px",
-              margin: "0 0 20px 0",
-              color: "#000000",
-              fontWeight: "600",
-            }}
-          >
-            🧠 Your Smart Planner
-          </h2>
-          {tasks.map((task) => (
-            <div
-              key={task._id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                padding: "16px",
-                backgroundColor: task.completed ? "#EAE4D5" : "#F2F2F2",
-                borderRadius: "12px",
-                marginBottom: "12px",
-                border: `2px solid ${task.completed ? "#B6B09F" : "#EAE4D5"}`,
-                transition: "all 0.3s ease",
-              }}
-            >
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "16px" }}
-              >
-                <span
-                  style={{
-                    backgroundColor:
-                      task.subject === "DSA"
-                        ? "#000000"
-                        : task.subject === "OS"
-                        ? "#B6B09F"
-                        : "#EAE4D5",
-                    color: task.subject === "DSA" ? "#F2F2F2" : "#000000",
-                    padding: "6px 12px",
-                    borderRadius: "8px",
-                    fontSize: "12px",
-                    fontWeight: "600",
-                  }}
-                >
-                  📘 {task.subject}
-                </span>
-                <span
-                  style={{
-                    textDecoration: task.completed ? "line-through" : "none",
-                    color: "#000000",
-                    fontWeight: "500",
-                  }}
-                >
-                  {task.title}
-                </span>
+        {/* Stat rings */}
+        <section className="ux-stats" aria-label="Overview">
+          <div className="ux-card ux-stat">
+            <div className="ux-stat-head">
+              <BookOpen size={18} color="var(--accent)" />
+              <span>{topicList.length} topics logged</span>
+            </div>
+            <Ring value={analytics.subjectsCompleted} colors={["#ff7a5c", "#ff4d79"]}>
+              <BookOpen size={34} strokeWidth={1.4} />
+            </Ring>
+            <div className="ux-big">
+              {analytics.subjectsCompleted ?? 0}
+              <small>%</small>
+            </div>
+            <div className="ux-cap">Syllabus covered</div>
+          </div>
+
+          <div className="ux-card ux-stat">
+            <div className="ux-stat-head">
+              <TrendingUp size={18} color="var(--blue)" />
+              <span>{mockTestMarks.length} tests</span>
+            </div>
+            <Ring value={analytics.accuracy} colors={["#5ac8fa", "#8b7cff"]}>
+              <TrendingUp size={34} strokeWidth={1.4} />
+            </Ring>
+            <div className="ux-big">
+              {analytics.accuracy ?? 0}
+              <small>%</small>
+            </div>
+            <div className="ux-cap">Avg mock score</div>
+          </div>
+
+          <div className="ux-card ux-stat">
+            <div className="ux-stat-head">
+              <Flame size={18} color="var(--orange)" />
+              <span>Best {analytics.bestStreak ?? 0} days</span>
+            </div>
+            <Ring value={streakRing} colors={["#ffb15c", "#ff6fae"]}>
+              <Flame size={34} strokeWidth={1.4} />
+            </Ring>
+            <div className="ux-big">
+              {analytics.currentStreak ?? 0}
+              <small>DAYS</small>
+            </div>
+            <div className="ux-cap">Current streak</div>
+          </div>
+
+          <HabitSummaryCard />
+        </section>
+
+        {/* Planner + scores */}
+        <section className="ux-two">
+          <div className="ux-card" id="planner">
+            <h2 className="ux-title">planner</h2>
+            {tasks.length === 0 ? (
+              <div className="ux-empty">No tasks yet. Add your first one below.</div>
+            ) : (
+              tasks.map((task) => (
+                <div key={task._id} className={`ux-row${task.completed ? " done" : ""}`}>
+                  <div className="ux-row-main">
+                    <button
+                      type="button"
+                      role="checkbox"
+                      aria-checked={!!task.completed}
+                      aria-label={task.title}
+                      className={`ux-check${task.completed ? " on" : ""}`}
+                      onClick={() => toggleTask(task._id)}
+                    >
+                      {task.completed && <Check size={14} strokeWidth={3} />}
+                    </button>
+                    <span className="ux-chip accent">{task.subject}</span>
+                    <span className="ux-row-title">{task.title}</span>
+                  </div>
+                </div>
+              ))
+            )}
+
+            {showTaskForm ? (
+              <div className="ux-form">
+                <div className="ux-form-row">
+                  <select
+                    aria-label="Subject"
+                    value={newTask.subject}
+                    onChange={(e) => setNewTask({ ...newTask, subject: e.target.value })}
+                    style={{ flex: "0 0 120px" }}
+                  >
+                    {subjects.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                  <input
+                    aria-label="Task title"
+                    placeholder="Task title"
+                    value={newTask.title}
+                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
+                    onKeyDown={(e) => e.key === "Enter" && handleAddTask()}
+                  />
+                </div>
+                <div className="ux-actions">
+                  <button type="button" className="ux-btn" onClick={handleAddTask}>
+                    Add task
+                  </button>
+                  <button type="button" className="ux-btn danger" onClick={handleDeleteTask}>
+                    Delete completed
+                  </button>
+                  <button type="button" className="ux-btn ghost" onClick={() => setShowTaskForm(false)}>
+                    Cancel
+                  </button>
+                </div>
               </div>
+            ) : (
+              <div className="ux-actions" style={{ marginTop: "16px" }}>
+                <button type="button" className="ux-btn" onClick={() => setShowTaskForm(true)}>
+                  <Plus size={18} /> Add task
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="ux-card" id="scores">
+            <h2 className="ux-title">scores</h2>
+            {scoreData.length === 0 ? (
+              <div className="ux-empty">No scores yet. Use "Enter score" after a mock test.</div>
+            ) : (
+              <div style={{ width: "100%", height: 230 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={scoreData} margin={{ top: 12, right: 14, bottom: 0, left: -14 }}>
+                    <defs>
+                      <linearGradient id="scoreLine" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#8b7cff" />
+                        <stop offset="100%" stopColor="#ff6fae" />
+                      </linearGradient>
+                      <linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#ff6fae" stopOpacity="0.32" />
+                        <stop offset="100%" stopColor="#ff6fae" stopOpacity="0" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.08)" />
+                    <XAxis
+                      dataKey="test"
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "#d0c8c4", fontSize: 13 }}
+                      tickFormatter={(v) => `T${v}`}
+                    />
+                    <YAxis
+                      domain={[0, 100]}
+                      ticks={[0, 25, 50, 75, 100]}
+                      tickLine={false}
+                      axisLine={false}
+                      tick={{ fill: "#d0c8c4", fontSize: 13 }}
+                    />
+                    <Tooltip content={<ScoreTip />} cursor={{ stroke: "rgba(255,255,255,0.2)" }} />
+                    <Area
+                      type="monotone"
+                      dataKey="score"
+                      stroke="url(#scoreLine)"
+                      strokeWidth={3}
+                      fill="url(#scoreFill)"
+                      dot={{ r: 4, fill: "#ff6fae", stroke: "#1b1716", strokeWidth: 2 }}
+                      activeDot={{ r: 6, fill: "#fff", stroke: "#ff6fae", strokeWidth: 2 }}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            <div className="ux-kpis">
+              <div className="ux-kpi">
+                <div className="ux-big">{mockTestMarks.length}</div>
+                <div className="ux-cap muted">Total tests</div>
+              </div>
+              <div className="ux-kpi">
+                <div className="ux-big">{highest}</div>
+                <div className="ux-cap muted">Highest score</div>
+              </div>
+              <div className="ux-kpi">
+                <div className="ux-big">{average}</div>
+                <div className="ux-cap muted">Average score</div>
+              </div>
+            </div>
+
+            <div className="ux-actions" style={{ marginTop: "20px" }}>
+              <button type="button" className="ux-btn" onClick={SendScore}>
+                <Plus size={18} /> Enter score
+              </button>
               <button
-                onClick={() => toggleTask(task._id)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  fontSize: "24px",
+                type="button"
+                className="ux-btn ghost"
+                onClick={() => {
+                  const randomIndex = Math.floor(Math.random() * 5) + 1;
+                  setMockTestPDF(`/Gate_Mock/GATE_MockTest_${randomIndex}.pdf`);
+                  setShowMockTestModal(true);
                 }}
               >
-                {task.completed ? (
-                  <CheckCircle color="#B6B09F" />
-                ) : (
-                  <Circle color="#B6B09F" />
-                )}
+                <FlaskConical size={18} /> Take mock test
               </button>
             </div>
-          ))}
+          </div>
+        </section>
 
-          {showTaskForm ? (
-            <div
-              style={{
-                backgroundColor: "#EAE4D5",
-                padding: "20px",
-                borderRadius: "12px",
-                marginTop: "16px",
-              }}
-            >
-              <div
-                style={{ display: "flex", gap: "12px", marginBottom: "12px" }}
-              >
-                <select
-                  value={newTask.subject}
-                  onChange={(e) =>
-                    setNewTask({ ...newTask, subject: e.target.value })
-                  }
-                  style={{ ...inputStyle, flex: 1 }}
-                >
-                  {subjects.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-                <input
-                  placeholder="Task title"
-                  value={newTask.title}
-                  onChange={(e) =>
-                    setNewTask({ ...newTask, title: e.target.value })
-                  }
-                  style={{ ...inputStyle, flex: 2 }}
-                />
-              </div>
-              <div style={{ display: "flex", gap: "12px" }}>
-                <button
-                  onClick={handleAddTask}
-                  style={{ ...buttonStyle, flex: 1 }}
-                >
-                  Add Task
-                </button>
-                <button
-                  onClick={handleDeleteTask}
-                  style={{
-                    ...buttonStyle,
-                    backgroundColor: "#000000",
-                    color: "#F2F2F2",
-                    flex: 1,
-                  }}
-                >
-                  🗑️ Delete Completed
-                </button>
-                <button
-                  onClick={() => setShowTaskForm(false)}
-                  style={{
-                    ...buttonStyle,
-                    backgroundColor: "#F2F2F2",
-                    color: "#000000",
-                    border: "2px solid #B6B09F",
-                    flex: 1,
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowTaskForm(true)}
-              style={{ ...buttonStyle, marginTop: "16px" }}
-            >
-              <Plus size={18} style={{ marginRight: "8px" }} /> Add Custom Task
-            </button>
-          )}
-        </div>
-
-        {/* Grid Layout */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(350px, 1fr))",
-            gap: "20px",
-          }}
-        >
-          {/* Syllabus Tracker */}
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "20px",
-                margin: "0 0 16px 0",
-                color: "#000000",
-                fontWeight: "600",
-              }}
-            >
-              📚 Syllabus
+        {/* Library */}
+        <h2 className="ux-title" id="library" style={{ scrollMarginTop: "24px" }}>
+          library
+        </h2>
+        <section className="ux-library">
+          <div className="ux-card">
+            <h3 className="ux-title" style={{ fontSize: "22px" }}>
+              syllabus
             </h3>
             <select
+              aria-label="GATE branch"
               value={branch}
               onChange={handleBranchChange}
-              style={{
-                ...inputStyle,
-                width: "100%",
-                marginBottom: "16px",
-              }}
+              style={{ width: "100%", marginBottom: "14px" }}
             >
               {branches.map((b) => (
                 <option key={b} value={b}>
@@ -849,472 +929,93 @@ const GateDashboard = () => {
               ))}
             </select>
             <button
+              type="button"
+              className="ux-btn block"
               onClick={() => {
                 const branchCode = branch.split(" - ")[0];
-                setSyllabusPDF(
-                  `/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(
-                    /\s+/g,
-                    ""
-                  )
-                );
+                setSyllabusPDF(`/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, ""));
                 setShowSyllabusModal(true);
               }}
-              style={{ ...buttonStyle, width: "100%" }}
             >
-              <BookOpen size={18} style={{ marginRight: "8px" }} /> View
-              Syllabus
+              <BookOpen size={18} /> View syllabus
             </button>
           </div>
 
-          {/* Performance Analytics */}
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "20px",
-                margin: "0 0 16px 0",
-                color: "#000000",
-                fontWeight: "600",
-              }}
-            >
-              📊 Performance Analytics
+          <div className="ux-card">
+            <h3 className="ux-title" style={{ fontSize: "22px" }}>
+              previous papers
             </h3>
-            <div
-              style={{
-                backgroundColor: "#EAE4D5",
-                borderRadius: "12px",
-                padding: "16px",
-              }}
-            >
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  fontSize: "14px",
-                }}
-              >
-                <thead>
-                  <tr
-                    style={{
-                      backgroundColor: "#B6B09F",
-                      color: "#000000",
-                    }}
-                  >
-                    <th
-                      style={{
-                        padding: "12px",
-                        borderRadius: "8px 0 0 8px",
-                        fontWeight: "600",
+            {pyqs.map(({ year, file }) => {
+              const fileUrl = `/Gate_PYQs/${file}`;
+              return (
+                <div key={year} className="ux-row">
+                  <span className="ux-row-title">GATE {year}</span>
+                  <div className="ux-actions" style={{ flexWrap: "nowrap" }}>
+                    <button
+                      type="button"
+                      className="ux-btn ghost sm"
+                      onClick={() => {
+                        setPyqPDF(fileUrl);
+                        setShowPYQModal(true);
                       }}
                     >
-                      Test #
-                    </th>
-                    <th
-                      style={{
-                        padding: "12px",
-                        borderRadius: "0 8px 8px 0",
-                        fontWeight: "600",
-                      }}
-                    >
-                      Score
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockTestMarks.slice(-3).map((score, index) => (
-                    <tr
-                      key={index}
-                      style={{
-                        backgroundColor:
-                          index % 2 === 0 ? "#F2F2F2" : "#EAE4D5",
-                      }}
-                    >
-                      <td
-                        style={{
-                          padding: "12px",
-                          textAlign: "center",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {mockTestMarks.length - 4 + index + 1}
-                      </td>
-                      <td
-                        style={{
-                          padding: "12px",
-                          textAlign: "center",
-                          fontWeight: "500",
-                        }}
-                      >
-                        {typeof score === "number" && !isNaN(score)
-                          ? `${score}%`
-                          : "N/A"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Mock Tests */}
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "20px",
-                margin: "0 0 16px 0",
-                color: "#000000",
-                fontWeight: "600",
-              }}
-            >
-              🧪 Mock Tests
-            </h3>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-            >
-              <button
-                onClick={() => {
-                  const randomIndex = Math.floor(Math.random() * 5) + 1;
-                  setMockTestPDF(`/Gate_Mock/GATE_MockTest_${randomIndex}.pdf`);
-                  setShowMockTestModal(true);
-                }}
-                style={{ ...buttonStyle, width: "100%" }}
-              >
-                🧪 Take Mock Test
-              </button>
-              <button
-                onClick={SendScore}
-                style={{
-                  ...buttonStyle,
-                  backgroundColor: "#000000",
-                  color: "#F2F2F2",
-                  width: "100%",
-                }}
-              >
-                📝 Enter Score
-              </button>
-            </div>
-          </div>
-
-          {/* Previous Papers */}
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "20px",
-                margin: "0 0 16px 0",
-                color: "#000000",
-                fontWeight: "600",
-              }}
-            >
-              📂 Previous Papers
-            </h3>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-            >
-              {[
-                { year: "2023", file: "gate 2023.pdf" },
-                { year: "2022", file: "gate 2022.pdf" },
-                { year: "2021 Set 1", file: "gate 2021 set 1.pdf" },
-                { year: "2021 Set 2", file: "gate 2021 set 2.pdf" },
-                { year: "2020 (CSE)", file: "gate 2020 cse.pdf" },
-                { year: "2019 (CSE)", file: "gate 2019 cse.pdf" },
-              ].map(({ year, file }) => {
-                const fileUrl = `/Gate_PYQs/${file}`;
-                return (
-                  <div
-                    key={year}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "12px",
-                      backgroundColor: "#EAE4D5",
-                      borderRadius: "8px",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontWeight: "600",
-                        color: "#000000",
-                      }}
-                    >
-                      GATE {year}
-                    </span>
-                    <div style={{ display: "flex", gap: "8px" }}>
-                      <button
-                        onClick={() => {
-                          setPyqPDF(fileUrl);
-                          setShowPYQModal(true);
-                        }}
-                        style={{
-                          ...buttonStyle,
-                          fontSize: "12px",
-                          padding: "6px 12px",
-                          backgroundColor: "#000000",
-                          color: "#F2F2F2",
-                        }}
-                      >
-                        👁️ View
-                      </button>
-                      <a
-                        href={fileUrl}
-                        download
-                        style={{
-                          ...buttonStyle,
-                          fontSize: "12px",
-                          padding: "6px 12px",
-                          backgroundColor: "#B6B09F",
-                          color: "#000000",
-                          textDecoration: "none",
-                        }}
-                      >
-                        📥 Download
-                      </a>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Your Stats */}
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "20px",
-                margin: "0 0 16px 0",
-                color: "#000000",
-                fontWeight: "600",
-              }}
-            >
-              🧑‍🎓 Your Stats
-            </h3>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "12px",
-              }}
-            >
-              {[
-                {
-                  label: "Total Tests",
-                  value: mockTestMarks.length,
-                  color: "#B6B09F",
-                },
-                {
-                  label: "Highest Score",
-                  value:
-                    mockTestMarks.length > 0 ? Math.max(...mockTestMarks) : 0,
-                  color: "#000000",
-                },
-                {
-                  label: "Average Score",
-                  value:
-                    mockTestMarks.length > 0
-                      ? Math.round(
-                          mockTestMarks.reduce((a, b) => a + b, 0) /
-                            mockTestMarks.length
-                        )
-                      : 0,
-                  color: "#EAE4D5",
-                },
-                { label: "Notes Saved", value: notes.length, color: "#B6B09F" },
-              ].map((stat, index) => (
-                <div
-                  key={index}
-                  style={{
-                    textAlign: "center",
-                    padding: "16px",
-                    backgroundColor: "#EAE4D5",
-                    borderRadius: "12px",
-                    border: "2px solid #B6B09F",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "24px",
-                      fontWeight: "700",
-                      color: "#000000",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    {stat.value}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "12px",
-                      color: "#B6B09F",
-                      fontWeight: "600",
-                    }}
-                  >
-                    {stat.label}
+                      View
+                    </button>
+                    <a href={fileUrl} download className="ux-btn ghost sm">
+                      Download
+                    </a>
                   </div>
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
-          {/* Daily Habits */}
-          <HabitSummaryCard />
-
-          {/* Daily Motivation */}
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "20px",
-                margin: "0 0 16px 0",
-                color: "#000000",
-                fontWeight: "600",
-              }}
-            >
-              💬 Daily Motivation
+          <div className="ux-card" id="notes">
+            <h3 className="ux-title" style={{ fontSize: "22px" }}>
+              pinned notes
             </h3>
-            <div
-              style={{
-                backgroundColor: "#EAE4D5",
-                padding: "16px",
-                borderRadius: "12px",
-                marginBottom: "16px",
-                border: "2px solid #B6B09F",
-              }}
-            >
-              <p
-                style={{
-                  fontStyle: "italic",
-                  color: "#000000",
-                  fontSize: "14px",
-                  lineHeight: "1.6",
-                  margin: 0,
-                  fontWeight: "500",
-                }}
-              >
-                "{currentQuote}"
-              </p>
-            </div>
-            <button
-              onClick={fetchMotivationalQuote}
-              style={{ ...buttonStyle, width: "100%" }}
-            >
-              🔄 Get New Quote
-            </button>
-          </div>
-
-          {/* Pinned Notes */}
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "20px",
-                margin: "0 0 16px 0",
-                color: "#000000",
-                fontWeight: "600",
-              }}
-            >
-              📝 Pinned Notes
-            </h3>
-            <div style={{ marginBottom: "16px" }}>
-              {notes.length === 0 ? (
-                <div
-                  style={{
-                    color: "#B6B09F",
-                    fontStyle: "italic",
-                    textAlign: "center",
-                    padding: "20px",
-                    backgroundColor: "#EAE4D5",
-                    borderRadius: "12px",
-                  }}
-                >
-                  No notes yet. Add your first note!
-                </div>
-              ) : (
-                notes.map((note, index) => (
-                  <div
-                    key={index}
-                    style={{
-                      backgroundColor: "#EAE4D5",
-                      padding: "16px",
-                      borderRadius: "12px",
-                      marginBottom: "12px",
-                      border: "2px solid #B6B09F",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontWeight: "600",
-                        color: "#000000",
-                        marginBottom: "8px",
-                        fontSize: "16px",
-                      }}
-                    >
-                      {note.title}
-                    </div>
-                    <div
-                      style={{
-                        color: "#000000",
-                        fontSize: "14px",
-                        lineHeight: "1.5",
-                      }}
-                    >
+            {notes.length === 0 ? (
+              <div className="ux-empty">No notes yet. Add your first note.</div>
+            ) : (
+              notes.map((note, index) => (
+                <div key={note._id || index} className="ux-row" style={{ alignItems: "flex-start" }}>
+                  <div style={{ minWidth: 0 }}>
+                    <div className="ux-row-title">{note.title}</div>
+                    <div style={{ color: "var(--label-2)", fontSize: "15px", marginTop: 2, whiteSpace: "pre-wrap" }}>
                       {note.content}
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                </div>
+              ))
+            )}
 
             {showNoteForm ? (
-              <div
-                style={{
-                  backgroundColor: "#EAE4D5",
-                  padding: "16px",
-                  borderRadius: "12px",
-                  marginBottom: "12px",
-                }}
-              >
+              <div className="ux-form">
                 <input
                   type="text"
+                  aria-label="Note title"
                   placeholder="Note title"
                   value={newNote.title}
-                  onChange={(e) =>
-                    setNewNote({ ...newNote, title: e.target.value })
-                  }
-                  style={{
-                    ...inputStyle,
-                    width: "100%",
-                    marginBottom: "12px",
-                  }}
+                  onChange={(e) => setNewNote({ ...newNote, title: e.target.value })}
                 />
                 <textarea
+                  aria-label="Note content"
                   placeholder="Note content"
                   value={newNote.content}
-                  onChange={(e) =>
-                    setNewNote({ ...newNote, content: e.target.value })
-                  }
+                  onChange={(e) => setNewNote({ ...newNote, content: e.target.value })}
                   rows={4}
-                  style={{
-                    ...inputStyle,
-                    width: "100%",
-                    marginBottom: "12px",
-                    resize: "vertical",
-                    fontFamily: "inherit",
-                  }}
+                  style={{ resize: "vertical" }}
                 />
-                <div style={{ display: "flex", gap: "12px" }}>
-                  <button
-                    onClick={handleAddNote}
-                    style={{ ...buttonStyle, flex: 1 }}
-                  >
-                    Save Note
+                <div className="ux-actions">
+                  <button type="button" className="ux-btn" onClick={handleAddNote}>
+                    Save note
                   </button>
                   <button
+                    type="button"
+                    className="ux-btn ghost"
                     onClick={() => {
                       setShowNoteForm(false);
                       setNewNote({ title: "", content: "" });
-                    }}
-                    style={{
-                      ...buttonStyle,
-                      backgroundColor: "#F2F2F2",
-                      color: "#000000",
-                      border: "2px solid #B6B09F",
-                      flex: 1,
                     }}
                   >
                     Cancel
@@ -1322,377 +1023,156 @@ const GateDashboard = () => {
                 </div>
               </div>
             ) : (
-              <button
-                onClick={() => setShowNoteForm(true)}
-                style={{ ...buttonStyle, width: "100%", marginBottom: "12px" }}
-              >
-                <Plus size={16} style={{ marginRight: "8px" }} /> Add Note
-              </button>
+              <div className="ux-actions" style={{ marginTop: "16px" }}>
+                <button type="button" className="ux-btn" onClick={() => setShowNoteForm(true)}>
+                  <Plus size={18} /> Add note
+                </button>
+                {notes.length > 0 && (
+                  <button type="button" className="ux-btn danger" onClick={handleDeleteNote}>
+                    <Minus size={18} /> Delete last
+                  </button>
+                )}
+              </div>
             )}
-            <button
-              onClick={handleDeleteNote}
-              style={{
-                ...buttonStyle,
-                backgroundColor: "#000000",
-                color: "#F2F2F2",
-                width: "100%",
-              }}
-            >
-              <Minus size={16} style={{ marginRight: "8px" }} /> Delete Last
-              Note
-            </button>
           </div>
 
-          {/* Completed Topics */}
-          <div style={cardStyle}>
-            <h3
-              style={{
-                fontSize: "20px",
-                margin: "0 0 16px 0",
-                color: "#000000",
-                fontWeight: "600",
-              }}
-            >
-              📝 Completed Topics
+          <div className="ux-card">
+            <h3 className="ux-title" style={{ fontSize: "22px" }}>
+              completed topics
             </h3>
-            <div style={{ display: "flex", gap: "12px", marginBottom: "16px" }}>
+            <div className="ux-form-row" style={{ marginBottom: "10px" }}>
               <input
                 type="text"
+                aria-label="New topic"
                 value={newTopic}
                 onChange={(e) => setNewTopic(e.target.value)}
-                placeholder="Enter a new topic"
-                style={{ ...inputStyle, flex: 1 }}
+                onKeyDown={(e) => e.key === "Enter" && handleAddTopic()}
+                placeholder="Enter a topic you finished"
               />
-              <button onClick={handleAddTopic} style={buttonStyle}>
-                ➕ Add
+              <button type="button" className="ux-btn" style={{ flex: "0 0 auto" }} onClick={handleAddTopic}>
+                Add
               </button>
             </div>
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "8px" }}
-            >
-              {topicList
-                .filter((t) => t.trim() !== "")
-                .map((topic, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "12px",
-                      backgroundColor: "#EAE4D5",
-                      borderRadius: "8px",
-                      border: "1px solid #B6B09F",
-                    }}
+            {topicList.filter((t) => t.trim() !== "").length === 0 && (
+              <div className="ux-empty">Topics you finish will show up here.</div>
+            )}
+            {topicList
+              .filter((t) => t.trim() !== "")
+              .map((topic) => (
+                <div key={topic} className="ux-row">
+                  <span className="ux-row-title">{topic}</span>
+                  <button
+                    type="button"
+                    className="ux-btn danger ux-icon-btn"
+                    aria-label={`Delete ${topic}`}
+                    onClick={() => handleDeleteTopic(topic)}
                   >
-                    <span
-                      style={{
-                        fontSize: "14px",
-                        color: "#000000",
-                        fontWeight: "500",
-                      }}
-                    >
-                      {topic}
-                    </span>
-                    <button
-                      onClick={() => handleDeleteTopic(topic)}
-                      style={{
-                        ...buttonStyle,
-                        backgroundColor: "#000000",
-                        color: "#F2F2F2",
-                        padding: "6px 12px",
-                        fontSize: "12px",
-                      }}
-                    >
-                      🗑️
-                    </button>
-                  </div>
-                ))}
-            </div>
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              ))}
           </div>
 
-          <div
-            style={{
-              minHeight: "30vh",
-              backgroundColor: "#F2F2F2",
-              padding: "40px 20px",
-              fontFamily:
-                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "flex-start",
-              paddingTop: "60px",
-            }}
-          >
-            <div
-              style={{
-                backgroundColor: "#EAE4D5",
-                padding: "24px",
-                borderRadius: "12px",
-                border: "1px solid #B6B09F",
-                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.08)",
-                maxWidth: "380px",
-                width: "100%",
-              }}
-            >
-              <h3
-                style={{
-                  fontSize: "20px",
-                  fontWeight: "600",
-                  color: "#000000",
-                  marginBottom: "24px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "8px",
+          <div className="ux-card">
+            <h3 className="ux-title" style={{ fontSize: "22px" }}>
+              timer &amp; stopwatch
+            </h3>
+
+            <div className="ux-row" style={{ borderBottom: 0, paddingBottom: 4 }}>
+              <span className="ux-cap">Stopwatch</span>
+              <span style={{ fontSize: "30px", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                {formatTime(stopwatchTime)}
+              </span>
+            </div>
+            <div className="ux-actions">
+              <button type="button" className="ux-btn sm" onClick={() => setIsStopwatchRunning(true)}>
+                Start
+              </button>
+              <button type="button" className="ux-btn ghost sm" onClick={() => setIsStopwatchRunning(false)}>
+                Pause
+              </button>
+              <button
+                type="button"
+                className="ux-btn ghost sm"
+                onClick={() => {
+                  setStopwatchTime(0);
+                  setIsStopwatchRunning(false);
                 }}
               >
-                ⏱️ Timer & Stopwatch
-              </h3>
+                Reset
+              </button>
+            </div>
 
-              {/* Stopwatch */}
-              <div style={{ marginBottom: "32px" }}>
-                <h4
-                  style={{
-                    fontSize: "16px",
-                    color: "#000000",
-                    marginBottom: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    🕒 Stopwatch
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "monospace",
-                      fontSize: "18px",
-                      fontWeight: "700",
-                      color: "#000000",
-                    }}
-                  >
-                    {formatTime(stopwatchTime)}
-                  </span>
-                </h4>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    onClick={() => setIsStopwatchRunning(true)}
-                    style={buttonStyle1("#000000")}
-                  >
-                    ▶ Start
-                  </button>
-                  <button
-                    onClick={() => setIsStopwatchRunning(false)}
-                    style={buttonStyle1("#B6B09F")}
-                  >
-                    ⏸️ Pause
-                  </button>
-                  <button
-                    onClick={() => {
-                      setStopwatchTime(0);
-                      setIsStopwatchRunning(false);
-                    }}
-                    style={buttonStyle1("#B6B09F")}
-                  >
-                    🔁 Reset
-                  </button>
-                </div>
-              </div>
+            <div className="ux-nav-sep" style={{ margin: "18px 0" }} />
 
-              {/* Timer */}
-              <div>
-                <h4
-                  style={{
-                    fontSize: "16px",
-                    color: "#000000",
-                    marginBottom: "12px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                  }}
-                >
-                  <span
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "6px",
-                    }}
-                  >
-                    ⏳ Timer
-                  </span>
-                  <span
-                    style={{
-                      fontFamily: "monospace",
-                      fontSize: "18px",
-                      fontWeight: "700",
-                      color: "#000000",
-                    }}
-                  >
-                    {formatTime(timerTime)}
-                  </span>
-                </h4>
-                <div style={{ marginBottom: "12px" }}>
-                  <input
-                    type="number"
-                    placeholder="Enter time in seconds"
-                    value={timerInput}
-                    onChange={(e) => setTimerInput(e.target.value)}
-                    style={{
-                      width: "100%",
-                      padding: "12px 16px",
-                      borderRadius: "8px",
-                      border: "1px solid #B6B09F",
-                      fontSize: "14px",
-                      outline: "none",
-                      backgroundColor: "#F2F2F2",
-                      color: "#000000",
-                      boxSizing: "border-box",
-                      fontFamily: "inherit",
-                    }}
-                  />
-                </div>
-                <div style={{ display: "flex", gap: "8px" }}>
-                  <button
-                    onClick={() => {
-                      setTimerTime(Number(timerInput));
-                      setIsTimerRunning(true);
-                    }}
-                    style={buttonStyle1("#000000")}
-                  >
-                    🟢 Start
-                  </button>
-                  <button
-                    onClick={() => setIsTimerRunning(false)}
-                    style={buttonStyle1("#B6B09F")}
-                  >
-                    ⏸️ Pause
-                  </button>
-                  <button
-                    onClick={() => {
-                      setTimerTime(0);
-                      setTimerInput("");
-                      setIsTimerRunning(false);
-                    }}
-                    style={buttonStyle1("#B6B09F")}
-                  >
-                    🔁 Reset
-                  </button>
-                </div>
-              </div>
+            <div className="ux-row" style={{ borderBottom: 0, paddingBottom: 4 }}>
+              <span className="ux-cap">Timer</span>
+              <span style={{ fontSize: "30px", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
+                {formatTime(timerTime)}
+              </span>
+            </div>
+            <input
+              type="number"
+              min="1"
+              aria-label="Timer length in seconds"
+              placeholder="Time in seconds"
+              value={timerInput}
+              onChange={(e) => setTimerInput(e.target.value)}
+              style={{ width: "100%", marginBottom: "12px" }}
+            />
+            <div className="ux-actions">
+              <button type="button" className="ux-btn sm" onClick={startTimer}>
+                Start
+              </button>
+              <button type="button" className="ux-btn ghost sm" onClick={() => setIsTimerRunning(false)}>
+                Pause
+              </button>
+              <button
+                type="button"
+                className="ux-btn ghost sm"
+                onClick={() => {
+                  setTimerTime(0);
+                  setTimerInput("");
+                  setIsTimerRunning(false);
+                }}
+              >
+                Reset
+              </button>
             </div>
           </div>
-        </div>
-      </div>
 
-      {showSyllabusModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0,0,0,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              padding: "16px",
-              borderRadius: "8px",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-              overflow: "auto",
-              position: "relative",
-            }}
-          >
-            <button
-              onClick={() => setShowSyllabusModal(false)}
-              style={{
-                position: "absolute",
-                top: "8px",
-                right: "12px",
-                background: "transparent",
-                border: "none",
-                fontSize: "20px",
-                cursor: "pointer",
-              }}
-            >
-              ❌
+          <div className="ux-card">
+            <h3 className="ux-title" style={{ fontSize: "22px" }}>
+              daily motivation
+            </h3>
+            <p style={{ fontSize: "20px", fontWeight: 300, lineHeight: 1.5, margin: "0 0 18px", color: "var(--label)" }}>
+              “{currentQuote}”
+            </p>
+            <button type="button" className="ux-btn ghost block" onClick={fetchMotivationalQuote}>
+              <Sparkles size={18} /> New quote
             </button>
-            <iframe
-              src={syllabusPDF}
-              width="800px"
-              height="600px"
-              style={{ border: "none" }}
-              title="Syllabus PDF"
-            />
           </div>
-        </div>
-      )}
+        </section>
+      </AppShell>
 
-      {/* Mock Test Modal */}
-      {showMockTestModal && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            backgroundColor: "rgba(0,0,0,0.6)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 9999,
-          }}
-        >
-          <div
-            style={{
-              background: "white",
-              padding: "16px",
-              borderRadius: "8px",
-              maxWidth: "90vw",
-              maxHeight: "90vh",
-              overflow: "auto",
-              position: "relative",
-            }}
-          >
-            <button
-              onClick={() => setShowMockTestModal(false)}
-              style={{
-                position: "absolute",
-                top: "8px",
-                right: "12px",
-                background: "transparent",
-                border: "none",
-                fontSize: "20px",
-                cursor: "pointer",
-              }}
-            >
-              ❌
-            </button>
-            <iframe
-              src={mockTestPDF}
-              width="800px"
-              height="600px"
-              style={{ border: "none" }}
-              title="Mock Test PDF"
-            />
-          </div>
-        </div>
-      )}
+      <PdfModal
+        open={showSyllabusModal}
+        src={syllabusPDF}
+        title="Syllabus"
+        onClose={() => setShowSyllabusModal(false)}
+      />
+      <PdfModal
+        open={showMockTestModal}
+        src={mockTestPDF}
+        title="Mock Test"
+        onClose={() => setShowMockTestModal(false)}
+      />
+      <PdfModal
+        open={showPYQModal}
+        src={pyqPDF}
+        title="Previous Paper"
+        onClose={() => setShowPYQModal(false)}
+      />
     </div>
   );
 };
