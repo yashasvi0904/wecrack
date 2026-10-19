@@ -8,6 +8,8 @@ import GateDashboard from './Screens/Dashboard/dashboard';
 import HabitTracker from './Screens/HabitTracker/HabitTracker';
 import MockTest from './Screens/MockTest/MockTest';
 import Library from './Screens/Library/Library';
+import SpotifyCallback from './Screens/Spotify/SpotifyCallback';
+import MusicPlayer from './components/MusicPlayer';
 function App() {
   return (
     <Router>
@@ -19,8 +21,10 @@ function App() {
         <Route path="/habits" element={<HabitTracker />} />
         <Route path="/mock-test" element={<MockTest />} />
         <Route path="/library" element={<Library />} />
+        <Route path="/spotify/callback" element={<SpotifyCallback />} />
         
       </Routes>
+      <MusicPlayer />
     </Router>
   )
 }

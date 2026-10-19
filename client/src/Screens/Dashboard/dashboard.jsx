@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import {
@@ -10,8 +10,6 @@ import {
   Sparkles,
   Check,
   Minus,
-  Play,
-  Pause,
   Trash2,
 } from "lucide-react";
 import {
@@ -408,48 +406,6 @@ const GateDashboard = () => {
     }
   };
 
-  // songs
-  const audioRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentSongIndex, setCurrentSongIndex] = useState(0);
-
-  const songs = [
-    { name: "Song 1", file: "/Music/Song1.mp3" },
-  ];
-
-  const togglePlay = () => {
-    const audio = audioRef.current;
-
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play().catch((err) => {
-        console.error("Audio play error:", err);
-        alert("Cannot play audio. Check console.");
-      });
-    }
-
-    setIsPlaying(!isPlaying);
-  };
-
-  const switchSong = (index) => {
-    const wasPlaying = isPlaying;
-    setCurrentSongIndex(index);
-    setIsPlaying(false);
-
-    // Delay to let the new <audio> source load, then resume if it was playing
-    if (wasPlaying) {
-      setTimeout(() => {
-        audioRef.current
-          ?.play()
-          .then(() => setIsPlaying(true))
-          .catch((err) => console.error("Audio play error:", err));
-      }, 100);
-    }
-  };
-
   // Mock-score numbers shared by the chart and the KPI strip
   const scoreData = mockTestMarks.map((score, i) => ({ test: i + 1, score }));
   const highest = mockTestMarks.length ? Math.max(...mockTestMarks) : 0;
@@ -464,31 +420,6 @@ const GateDashboard = () => {
 
   return (
     <div className="apple-ui">
-      <audio ref={audioRef} src={songs[currentSongIndex].file} loop />
-
-      {/* Music player */}
-      <div className="ux-music">
-        <select
-          aria-label="Choose a song"
-          value={currentSongIndex}
-          onChange={(e) => switchSong(Number(e.target.value))}
-        >
-          {songs.map((song, index) => (
-            <option key={index} value={index}>
-              {song.name}
-            </option>
-          ))}
-        </select>
-        <button
-          type="button"
-          className="ux-btn ux-icon-btn"
-          onClick={togglePlay}
-          aria-label={isPlaying ? "Pause music" : "Play music"}
-        >
-          {isPlaying ? <Pause size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
-        </button>
-      </div>
-
       <AppShell
         bare
         active="dashboard"

@@ -1283,3 +1283,210 @@ html:has(.apple-ui) {
     padding: 10px 12px;
   }
 }
+
+/* ---- Spotify music player (bottom-right) ----------------------------------- */
+.ux-mp {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  max-width: calc(100vw - 32px);
+}
+.ux-mp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 280px;
+  padding: 8px 10px 8px 16px;
+  border-radius: 999px;
+  border: 0;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  color: var(--label);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: var(--shadow-float), inset 0 0 0 1px var(--separator);
+}
+.ux-mp-pill-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ux-mp-pill-play {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ux-mp-panel {
+  width: 360px;
+  max-width: 100%;
+  max-height: min(70vh, 640px);
+  overflow-y: auto;
+  padding: 16px;
+  border-radius: 26px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  box-shadow: var(--shadow-float), inset 0 0 0 1px var(--separator);
+}
+.ux-mp-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.ux-mp-head strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 18px;
+  font-weight: 500;
+}
+.ux-mp-note {
+  color: var(--label-2);
+  font-size: 14px;
+  margin: 0 0 12px;
+  line-height: 1.45;
+}
+.apple-ui .ux-spotify {
+  background: #1db954;
+  color: #0a0706;
+  gap: 10px;
+}
+.ux-mp-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  margin-bottom: 10px;
+  border-radius: 16px;
+  background: var(--fill);
+  border: 1px solid var(--separator);
+  color: var(--label-3);
+}
+.apple-ui .ux-mp-search input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none !important;
+  padding: 12px 0;
+  border-radius: 0;
+}
+.ux-mp-results {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ux-mp-results button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  color: var(--label);
+  text-align: left;
+  cursor: pointer;
+}
+.ux-mp-results button:hover {
+  background: var(--fill);
+}
+.ux-mp-results img,
+.ux-mp-now img,
+.ux-mp-art {
+  border-radius: 10px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.ux-mp-art {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  background: var(--fill-2);
+}
+.ux-mp-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.ux-mp-meta b {
+  font-weight: 500;
+  font-size: 15px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ux-mp-meta small {
+  color: var(--label-2);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ux-mp-now {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--fill);
+  margin-bottom: 12px;
+}
+.ux-mp-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.ux-mp-link {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ux-mp-embed {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  border: 0;
+  border-radius: 14px;
+}
+@media (max-width: 560px) {
+  .ux-mp {
+    right: 12px;
+    bottom: 12px;
+  }
+  .ux-mp-panel {
+    width: calc(100vw - 24px);
+  }
+}
+
+/* The player lives outside the pages, so its wrapper only supplies theme tokens */
+.apple-ui.ux-mp-root {
+  min-height: 0;
+  height: 0;
+  background: transparent;
+  position: static;
+  isolation: auto;
+}
+.apple-ui.ux-mp-root::before {
+  display: none;
+}
