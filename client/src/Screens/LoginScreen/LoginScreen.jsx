@@ -1,355 +1,161 @@
-import React, { useState } from 'react';
-import { Eye, EyeOff, Mail, Lock, User } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { loginWithGoogle } from "../FireBase";
+import AuthLayout from "../../components/AuthLayout";
+import { Field, GoogleMark } from "../../components/ui";
 
 export default function LoginScreen() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [name, setName] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
   const [errors, setErrors] = useState({});
+  const [formError, setFormError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const validateForm = () => {
     const newErrors = {};
-    if (!email || !/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Valid email required';
-    if (!password || password.length < 6) newErrors.password = 'Password must be 6+ characters';
-    if (isSignUp && !name.trim()) newErrors.name = 'Name is required';
+    if (!email || !/\S+@\S+\.\S+/.test(email)) newErrors.email = "Valid email required";
+    if (!password || password.length < 6) newErrors.password = "Password must be 6+ characters";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const goToApp = (data) => navigate(data.role === "admin" ? "/admin-dashboard" : "/dashboard");
+
   const handleSubmit = async (e) => {
-   e.preventDefault();
-  if (!validateForm()) return;
+    e.preventDefault();
+    setFormError("");
+    if (!validateForm()) return;
 
-  setIsLoading(true);
-
-  try {
-    const endpoint = isSignUp
-      ? process.env.REACT_APP_REGISTER_URI || "http://localhost:5000/api/register"
-      : process.env.REACT_APP_LOGIN_URI || "http://localhost:5000/api/login";
-
-    const response = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include", // important for cookies
-      body: JSON.stringify(isSignUp ? { name, email, password } : { email, password }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      console.log(isSignUp ? "Registered successfully" : "Login successful", data);
-      // Redirect user
-      if (data.role === "admin") {
-        navigate("/admin-dashboard");
+    setIsLoading(true);
+    try {
+      const response = await fetch(process.env.REACT_APP_LOGIN_URI || "http://localhost:5000/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include", // the session lives in httpOnly cookies
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        goToApp(data);
       } else {
-        navigate("/dashboard");
+        setFormError(data.message || "Something went wrong.");
       }
-    } else {
-      alert(data.message || "Something went wrong.");
+    } catch (err) {
+      console.error("Auth error:", err);
+      setFormError("Server error. Try again later.");
+    } finally {
+      setIsLoading(false);
     }
-  } catch (err) {
-    console.error("Auth error:", err);
-    alert("Server error. Try again later.");
-  } finally {
-    setIsLoading(false);
-  }
-
   };
 
-  const inputStyle = (error) => ({
-    width: '100%',
-    padding: '15px 15px 15px 45px',
-    border: `2px solid ${error ? '#ff6b6b' : '#EAE4D5'}`,
-    borderRadius: '12px',
-    fontSize: '16px',
-    background: '#F2F2F2',
-    outline: 'none',
-    transition: 'all 0.3s ease',
-    fontFamily: 'inherit'
-  });
+  const handleGoogle = async () => {
+    if (googleLoading) return;
+    setGoogleLoading(true);
+    setFormError("");
+    try {
+      const result = await loginWithGoogle();
+      const idToken = await result.user.getIdToken();
+      const response = await fetch(process.env.REACT_APP_GOOGLE_AUTH_URI, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ idToken }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        goToApp(data);
+      } else {
+        setFormError(data.message || "Google sign-in failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Google Sign-In Error:", error);
+      // Closing the popup is not an error worth showing
+      if (error.code !== "auth/popup-closed-by-user" && error.code !== "auth/cancelled-popup-request") {
+        setFormError(
+          error.code === "auth/unauthorized-domain"
+            ? "This domain isn't authorized for Google sign-in yet."
+            : "Google sign-in failed. Please try again."
+        );
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #F2F2F2 0%, #EAE4D5 50%, #B6B09F 100%)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '20px',
-      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
-    }}>
-      <div style={{
-        background: 'rgba(255,255,255,0.95)',
-        backdropFilter: 'blur(20px)',
-        borderRadius: '24px',
-        padding: '40px',
-        width: '100%',
-        maxWidth: '420px',
-        boxShadow: '0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.2)',
-        transform: 'translateY(0)',
-        transition: 'transform 0.3s ease'
-      }}>
-        <div style={{ textAlign: 'center', marginBottom: '35px' }}>
-          <h1 style={{
-            color: '#000000',
-            fontSize: '32px',
-            fontWeight: '700',
-            margin: '0 0 8px 0',
-            letterSpacing: '-0.5px'
-          }}>
-            {isSignUp ? 'Create Account' : 'Welcome Back'}
-          </h1>
-          <p style={{
-            color: '#B6B09F',
-            fontSize: '16px',
-            margin: 0
-          }}>
-            {isSignUp ? 'Join us today' : 'Sign in to your account'}
-          </p>
-        </div>
-
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {isSignUp && (
-            <div style={{ position: 'relative' }}>
-              <User size={20} style={{
-                position: 'absolute',
-                left: '15px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                color: '#B6B09F',
-                zIndex: 1
-              }} />
-              <input
-                type="text"
-                placeholder="Full Name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={inputStyle(errors.name)}
-                onFocus={(e) => e.target.style.borderColor = '#B6B09F'}
-                onBlur={(e) => e.target.style.borderColor = errors.name ? '#ff6b6b' : '#EAE4D5'}
-              />
-              {errors.name && <span style={{ color: '#ff6b6b', fontSize: '12px', marginTop: '4px' }}>{errors.name}</span>}
-            </div>
-          )}
-
-          <div style={{ position: 'relative' }}>
-            <Mail size={20} style={{
-              position: 'absolute',
-              left: '15px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#B6B09F',
-              zIndex: 1
-            }} />
-            <input
-              type="email"
-              placeholder="Email Address"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={inputStyle(errors.email)}
-              onFocus={(e) => e.target.style.borderColor = '#B6B09F'}
-              onBlur={(e) => e.target.style.borderColor = errors.email ? '#ff6b6b' : '#EAE4D5'}
-            />
-            {errors.email && <span style={{ color: '#ff6b6b', fontSize: '12px', marginTop: '4px' }}>{errors.email}</span>}
-          </div>
-
-          <div style={{ position: 'relative' }}>
-            <Lock size={20} style={{
-              position: 'absolute',
-              left: '15px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: '#B6B09F',
-              zIndex: 1
-            }} />
-            <input
-              type={showPassword ? 'text' : 'password'}
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                ...inputStyle(errors.password),
-                paddingRight: '50px'
-              }}
-              onFocus={(e) => e.target.style.borderColor = '#B6B09F'}
-              onBlur={(e) => e.target.style.borderColor = errors.password ? '#ff6b6b' : '#EAE4D5'}
-            />
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to your account"
+      footer={
+        <>
+          Don't have an account?{" "}
+          <button type="button" className="ux-link" onClick={() => navigate("/register")}>
+            Sign up
+          </button>
+        </>
+      }
+    >
+      <form className="ux-auth-form" onSubmit={handleSubmit} noValidate>
+        <Field
+          icon={Mail}
+          type="email"
+          name="email"
+          autoComplete="email"
+          placeholder="Email address"
+          aria-label="Email address"
+          value={email}
+          error={errors.email}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (errors.email) setErrors({ ...errors, email: "" });
+          }}
+        />
+        <Field
+          icon={Lock}
+          type={showPassword ? "text" : "password"}
+          name="password"
+          autoComplete="current-password"
+          placeholder="Password"
+          aria-label="Password"
+          value={password}
+          error={errors.password}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (errors.password) setErrors({ ...errors, password: "" });
+          }}
+          trailing={
             <button
               type="button"
+              className="ux-eye"
               onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: 'absolute',
-                right: '15px',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: '#B6B09F',
-                padding: '4px',
-                borderRadius: '4px',
-                transition: 'background 0.2s'
-              }}
-              onMouseOver={(e) => e.target.style.background = 'rgba(182, 176, 159, 0.1)'}
-              onMouseOut={(e) => e.target.style.background = 'none'}
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
             </button>
-            {errors.password && <span style={{ color: '#ff6b6b', fontSize: '12px', marginTop: '4px' }}>{errors.password}</span>}
+          }
+        />
+
+        {formError && (
+          <div role="alert" className="ux-alert error">
+            {formError}
           </div>
+        )}
 
-          {!isSignUp && (
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', margin: '5px 0' }}>
-              <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', color: '#B6B09F', fontSize: '14px' }}>
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  style={{ marginRight: '8px', accentColor: '#B6B09F' }}
-                />
-                Remember me
-              </label>
-              <button type="button" style={{
-                background: 'none',
-                border: 'none',
-                color: '#B6B09F',
-                fontSize: '14px',
-                cursor: 'pointer',
-                textDecoration: 'underline'
-              }}>
-                Forgot password?
-              </button>
-            </div>
-          )}
+        <button type="submit" className="ux-btn block" disabled={isLoading} style={{ padding: "14px 22px", fontSize: "16px" }}>
+          {isLoading ? "Signing in..." : "Sign in"}
+        </button>
+      </form>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            style={{
-              padding: '16px',
-              background: isLoading ? '#B6B09F' : 'linear-gradient(135deg, #000000 0%, #B6B09F 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: isLoading ? 'not-allowed' : 'pointer',
-              marginTop: '10px',
-              transition: 'all 0.3s ease',
-              position: 'relative',
-              overflow: 'hidden'
-            }}
-            onMouseOver={(e) => !isLoading && (e.target.style.transform = 'translateY(-2px)')}
-            onMouseOut={(e) => !isLoading && (e.target.style.transform = 'translateY(0)')}
-          >
-            {isLoading ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
-                <div style={{
-                  width: '16px',
-                  height: '16px',
-                  border: '2px solid rgba(255,255,255,0.3)',
-                  borderTop: '2px solid white',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }} />
-                {isSignUp ? 'Creating Account...' : 'Signing In...'}
-              </div>
-            ) : (
-              isSignUp ? 'Create Account' : 'Sign In'
-            )}
-          </button>
-        </form>
+      <div className="ux-divider">or</div>
 
-        <div style={{ marginTop: "15px", textAlign: "center" }}>
-          <button
-            onClick={async () => {
-              if (isLoading) return;
-              setIsLoading(true);
-              try {
-                const result = await loginWithGoogle(); // This should return user object from Firebase
-                const idToken = await result.user.getIdToken();
-
-                const response = await fetch(process.env.REACT_APP_GOOGLE_AUTH_URI, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  credentials: "include",
-                  body: JSON.stringify({ idToken }),
-                });
-
-                const data = await response.json();
-                if (response.ok) {
-                  console.log("Google login successful", data);
-                  if (data.role === "admin") {
-                    navigate("/admin-dashboard");
-                  } else {
-                    navigate("/dashboard");
-                  }
-                } else {
-                  console.error("Google login failed", data.message);
-                }
-              } catch (error) {
-                console.error("Google Sign-In Error:", error);
-              } finally {
-                setIsLoading(false);
-              }
-            }}
-            disabled={isLoading}
-            style={{
-              width: "100%",
-              padding: "10px",
-              backgroundColor: "#4285F4",
-              color: "#ECEFCA",
-              border: "none",
-              borderRadius: "6px",
-              fontSize: "16px",
-              fontWeight: "600",
-              marginTop: "10px",
-              cursor: "pointer",
-            }}
-          >
-            {isLoading ? "Signing in..." : "Sign in with Google"}
-          </button>
-        </div>
-
-        <div style={{
-          textAlign: 'center',
-          marginTop: '25px',
-          color: '#B6B09F',
-          fontSize: '15px'
-        }}>
-          {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-          <button
-            type="button"
-            onClick={() => navigate('/register')}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: '#000000',
-              cursor: 'pointer',
-              fontWeight: '600',
-              fontSize: '15px',
-              textDecoration: 'underline',
-              padding: 0
-            }}
-          >
-            {isSignUp ? 'Sign In' : 'Sign Up'}
-          </button>
-        </div>
-      </div>
-
-      <style jsx>{`
-        @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
-        }
-      `}</style>
-    </div>
+      <button type="button" className="ux-btn ghost ux-google" onClick={handleGoogle} disabled={googleLoading} style={{ padding: "13px 22px" }}>
+        <GoogleMark />
+        {googleLoading ? "Signing in..." : "Sign in with Google"}
+      </button>
+    </AuthLayout>
   );
 }

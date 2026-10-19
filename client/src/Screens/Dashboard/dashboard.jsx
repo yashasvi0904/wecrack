@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 import {
   Plus,
   BookOpen,
@@ -47,86 +48,8 @@ const ScoreTip = ({ active, payload }) => {
   );
 };
 
-// Frosted-glass sheet that shows a PDF (syllabus, mock test or previous paper).
-const PdfModal = ({ open, src, title, onClose }) => {
-  useEffect(() => {
-    if (!open) return undefined;
-    const onKey = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-
-  if (!open) return null;
-  return (
-    <div
-      className="apple-glass"
-      role="dialog"
-      aria-modal="true"
-      aria-label={title}
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "var(--overlay)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-        zIndex: 10000,
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "var(--card-solid)",
-          borderRadius: "20px",
-          boxShadow: "var(--shadow-float)",
-          width: "min(960px, 100%)",
-          height: "min(88vh, 900px)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "14px 16px 14px 20px",
-            borderBottom: "0.5px solid var(--separator)",
-          }}
-        >
-          <strong style={{ fontSize: "17px", color: "var(--label)" }}>{title}</strong>
-          <button
-            onClick={onClose}
-            aria-label="Close"
-            style={{
-              width: "30px",
-              height: "30px",
-              borderRadius: "999px",
-              border: "none",
-              background: "var(--fill-2)",
-              color: "var(--label-2)",
-              cursor: "pointer",
-              fontSize: "15px",
-              lineHeight: 1,
-            }}
-          >
-            ✕
-          </button>
-        </div>
-        <iframe
-          src={src}
-          title={title}
-          style={{ border: "none", flex: 1, width: "100%", background: "#fff" }}
-        />
-      </div>
-    </div>
-  );
-};
-
 const GateDashboard = () => {
+  const navigate = useNavigate();
   const [analytics, setAnalytics] = useState({
     subjectsCompleted: 0,
     accuracy: 0,
@@ -147,8 +70,6 @@ const GateDashboard = () => {
     "Success doesn’t just find you. You have to go out and get it.",
   ];
 
-  const [pyqPDF, setPyqPDF] = useState("");
-  const [showPYQModal, setShowPYQModal] = useState(false);
 
   const [notes, setNotes] = useState([]);
   const [newNote, setNewNote] = useState({ title: "", content: "" });
@@ -162,12 +83,6 @@ const GateDashboard = () => {
     title: "",
     time: "",
   });
-  const [showSyllabus, setShowSyllabus] = useState(false);
-  const [showSyllabusModal, setShowSyllabusModal] = useState(false);
-  const [syllabusPDF, setSyllabusPDF] = useState("");
-  const [branch, setBranch] = useState("CSE");
-  const [mockTestPDF, setMockTestPDF] = useState("");
-  const [showMockTestModal, setShowMockTestModal] = useState(false);
   const [mockTestMarks, setMockTestMarks] = useState([]);
   const [currentQuote, setCurrentQuote] = useState(
     quoteList[Math.floor(Math.random() * quoteList.length)]
@@ -189,52 +104,11 @@ const GateDashboard = () => {
     }
   };
 
-  const [stopwatchTime, setStopwatchTime] = useState(0);
-  const [isStopwatchRunning, setIsStopwatchRunning] = useState(false);
-  const stopwatchInterval = useRef(null);
-
-  // Timer state
-  const [timerInput, setTimerInput] = useState("");
-  const [timerTime, setTimerTime] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const timerInterval = useRef(null);
-
   const [topicList, setTopicList] = useState([]);
   const [newTopic, setNewTopic] = useState("");
 
   const subjects = ["DSA", "OS", "CN", "DBMS", "COA", "Math"];
 
-  const branches = [
-    "AE - Aerospace Engineering",
-    "AG - Agricultural Engineering",
-    "AR - Architecture and Planning",
-    "BM - Biomedical Engineering",
-    "BT - Biotechnology",
-    "CE - Civil Engineering",
-    "CH - Chemical Engineering",
-    "CS - Computer Science & Information Technology",
-    "GG - Geology & Geophysics",
-    "IN - Instrumentation Engineering",
-    "MA - Mathematics",
-    "ME - Mechanical Engineering",
-    "MN - Mining Engineering",
-    "MT - Metallurgical Engineering",
-    "NM - Naval Architecture & Marine Engineering",
-  ];
-
-  const syllabusTopics = {
-    DSA: ["Arrays", "Linked Lists", "Trees", "Graphs", "Dynamic Programming"],
-    OS: [
-      "Process Management",
-      "Memory Management",
-      "File Systems",
-      "Synchronization",
-    ],
-    CN: ["OSI Model", "TCP/IP", "Routing", "Network Security"],
-    DBMS: ["ER Model", "Normalization", "SQL", "Transactions"],
-    COA: ["CPU Organization", "Memory Organization", "I/O Organization"],
-    Math: ["Probability", "Statistics", "Linear Algebra", "Calculus"],
-  };
 
   const userdetails = async () => {
     try {
@@ -465,18 +339,6 @@ const GateDashboard = () => {
     }
   };
 
-  // Handles GATE branch change, fetches PDF, converts to HTML (mock), and sends to backend
-  const handleBranchChange = async (e) => {
-    const selected = e.target.value;
-    setBranch(selected);
-
-    const branchCode = selected.split(" - ")[0];
-    const pdfPath =
-      `/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, "");
-    setSyllabusPDF(pdfPath);
-    setShowSyllabusModal(true);
-  };
-
   // Toggle the completed status of a task and update backend
   // Toggle the completed status of a task and update backend
   useEffect(() => {
@@ -514,7 +376,6 @@ const GateDashboard = () => {
       await axios.post(
         process.env.REACT_APP_ADD_TOPICS,
         {
-          branch: branch.split(" - ")[0],
           completedTopics: updatedTopics,
         },
         { withCredentials: true }
@@ -536,7 +397,6 @@ const GateDashboard = () => {
         process.env.REACT_APP_DELETE_TOPICS,
         {
           completedTopics: updated,
-          branch: branch.split(" - ")[0],
         },
         { withCredentials: true }
       );
@@ -548,55 +408,6 @@ const GateDashboard = () => {
     }
   };
 
-  // STopWatch
-  useEffect(() => {
-    if (isStopwatchRunning) {
-      stopwatchInterval.current = setInterval(() => {
-        setStopwatchTime((prev) => prev + 1);
-      }, 1000);
-    } else {
-      clearInterval(stopwatchInterval.current);
-    }
-    return () => clearInterval(stopwatchInterval.current);
-  }, [isStopwatchRunning]);
-
-  // Timer Effect
-  useEffect(() => {
-    if (isTimerRunning && timerTime > 0) {
-      timerInterval.current = setInterval(() => {
-        setTimerTime((prev) => Math.max(prev - 1, 0));
-      }, 1000);
-    } else {
-      clearInterval(timerInterval.current);
-    }
-
-    return () => clearInterval(timerInterval.current);
-  }, [isTimerRunning, timerTime]);
-
-  // Stop the timer once it reaches zero
-  useEffect(() => {
-    if (isTimerRunning && timerTime === 0) setIsTimerRunning(false);
-  }, [isTimerRunning, timerTime]);
-
-  const startTimer = () => {
-    if (timerTime > 0) {
-      setIsTimerRunning(true); // resume after a pause
-      return;
-    }
-    const seconds = Math.floor(Number(timerInput));
-    if (!Number.isFinite(seconds) || seconds <= 0) {
-      alert("Enter the time in seconds (greater than 0).");
-      return;
-    }
-    setTimerTime(seconds);
-    setIsTimerRunning(true);
-  };
-
-  const formatTime = (time) => {
-    const min = String(Math.floor(time / 60)).padStart(2, "0");
-    const sec = String(time % 60).padStart(2, "0");
-    return `${min}:${sec}`;
-  };
   // songs
   const audioRef = useRef(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -650,14 +461,6 @@ const GateDashboard = () => {
     ((analytics.currentStreak || 0) / Math.max(analytics.bestStreak || 0, 7)) * 100
   );
 
-  const pyqs = [
-    { year: "2023", file: "gate 2023.pdf" },
-    { year: "2022", file: "gate 2022.pdf" },
-    { year: "2021 Set 1", file: "gate 2021 set 1.pdf" },
-    { year: "2021 Set 2", file: "gate 2021 set 2.pdf" },
-    { year: "2020 (CSE)", file: "gate 2020 cse.pdf" },
-    { year: "2019 (CSE)", file: "gate 2019 cse.pdf" },
-  ];
 
   return (
     <div className="apple-ui">
@@ -692,7 +495,7 @@ const GateDashboard = () => {
         userName={user1}
         tabs={[
           { label: "Me", id: "overview" },
-          { label: "Library", id: "library" },
+          { label: "Notes", id: "notes-topics" },
         ]}
       >
         <div id="overview" style={{ marginBottom: "26px" }}>
@@ -892,84 +695,18 @@ const GateDashboard = () => {
               <button type="button" className="ux-btn" onClick={SendScore}>
                 <Plus size={18} /> Enter score
               </button>
-              <button
-                type="button"
-                className="ux-btn ghost"
-                onClick={() => {
-                  const randomIndex = Math.floor(Math.random() * 5) + 1;
-                  setMockTestPDF(`/Gate_Mock/GATE_MockTest_${randomIndex}.pdf`);
-                  setShowMockTestModal(true);
-                }}
-              >
+              <button type="button" className="ux-btn ghost" onClick={() => navigate("/mock-test")}>
                 <FlaskConical size={18} /> Take mock test
               </button>
             </div>
           </div>
         </section>
 
-        {/* Library */}
-        <h2 className="ux-title" id="library" style={{ scrollMarginTop: "24px" }}>
-          library
+        {/* Notes, topics and motivation */}
+        <h2 className="ux-title" id="notes-topics" style={{ scrollMarginTop: "24px" }}>
+          notes &amp; topics
         </h2>
         <section className="ux-library">
-          <div className="ux-card">
-            <h3 className="ux-title" style={{ fontSize: "22px" }}>
-              syllabus
-            </h3>
-            <select
-              aria-label="GATE branch"
-              value={branch}
-              onChange={handleBranchChange}
-              style={{ width: "100%", marginBottom: "14px" }}
-            >
-              {branches.map((b) => (
-                <option key={b} value={b}>
-                  {b}
-                </option>
-              ))}
-            </select>
-            <button
-              type="button"
-              className="ux-btn block"
-              onClick={() => {
-                const branchCode = branch.split(" - ")[0];
-                setSyllabusPDF(`/Gate_Syallbus/GATE_${branchCode}_2025_Syllabus.pdf`.replace(/\s+/g, ""));
-                setShowSyllabusModal(true);
-              }}
-            >
-              <BookOpen size={18} /> View syllabus
-            </button>
-          </div>
-
-          <div className="ux-card">
-            <h3 className="ux-title" style={{ fontSize: "22px" }}>
-              previous papers
-            </h3>
-            {pyqs.map(({ year, file }) => {
-              const fileUrl = `/Gate_PYQs/${file}`;
-              return (
-                <div key={year} className="ux-row">
-                  <span className="ux-row-title">GATE {year}</span>
-                  <div className="ux-actions" style={{ flexWrap: "nowrap" }}>
-                    <button
-                      type="button"
-                      className="ux-btn ghost sm"
-                      onClick={() => {
-                        setPyqPDF(fileUrl);
-                        setShowPYQModal(true);
-                      }}
-                    >
-                      View
-                    </button>
-                    <a href={fileUrl} download className="ux-btn ghost sm">
-                      Download
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
           <div className="ux-card" id="notes">
             <h3 className="ux-title" style={{ fontSize: "22px" }}>
               pinned notes
@@ -1075,74 +812,6 @@ const GateDashboard = () => {
 
           <div className="ux-card">
             <h3 className="ux-title" style={{ fontSize: "22px" }}>
-              timer &amp; stopwatch
-            </h3>
-
-            <div className="ux-row" style={{ borderBottom: 0, paddingBottom: 4 }}>
-              <span className="ux-cap">Stopwatch</span>
-              <span style={{ fontSize: "30px", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                {formatTime(stopwatchTime)}
-              </span>
-            </div>
-            <div className="ux-actions">
-              <button type="button" className="ux-btn sm" onClick={() => setIsStopwatchRunning(true)}>
-                Start
-              </button>
-              <button type="button" className="ux-btn ghost sm" onClick={() => setIsStopwatchRunning(false)}>
-                Pause
-              </button>
-              <button
-                type="button"
-                className="ux-btn ghost sm"
-                onClick={() => {
-                  setStopwatchTime(0);
-                  setIsStopwatchRunning(false);
-                }}
-              >
-                Reset
-              </button>
-            </div>
-
-            <div className="ux-nav-sep" style={{ margin: "18px 0" }} />
-
-            <div className="ux-row" style={{ borderBottom: 0, paddingBottom: 4 }}>
-              <span className="ux-cap">Timer</span>
-              <span style={{ fontSize: "30px", fontWeight: 500, fontVariantNumeric: "tabular-nums" }}>
-                {formatTime(timerTime)}
-              </span>
-            </div>
-            <input
-              type="number"
-              min="1"
-              aria-label="Timer length in seconds"
-              placeholder="Time in seconds"
-              value={timerInput}
-              onChange={(e) => setTimerInput(e.target.value)}
-              style={{ width: "100%", marginBottom: "12px" }}
-            />
-            <div className="ux-actions">
-              <button type="button" className="ux-btn sm" onClick={startTimer}>
-                Start
-              </button>
-              <button type="button" className="ux-btn ghost sm" onClick={() => setIsTimerRunning(false)}>
-                Pause
-              </button>
-              <button
-                type="button"
-                className="ux-btn ghost sm"
-                onClick={() => {
-                  setTimerTime(0);
-                  setTimerInput("");
-                  setIsTimerRunning(false);
-                }}
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-
-          <div className="ux-card">
-            <h3 className="ux-title" style={{ fontSize: "22px" }}>
               daily motivation
             </h3>
             <p style={{ fontSize: "20px", fontWeight: 300, lineHeight: 1.5, margin: "0 0 18px", color: "var(--label)" }}>
@@ -1155,24 +824,6 @@ const GateDashboard = () => {
         </section>
       </AppShell>
 
-      <PdfModal
-        open={showSyllabusModal}
-        src={syllabusPDF}
-        title="Syllabus"
-        onClose={() => setShowSyllabusModal(false)}
-      />
-      <PdfModal
-        open={showMockTestModal}
-        src={mockTestPDF}
-        title="Mock Test"
-        onClose={() => setShowMockTestModal(false)}
-      />
-      <PdfModal
-        open={showPYQModal}
-        src={pyqPDF}
-        title="Previous Paper"
-        onClose={() => setShowPYQModal(false)}
-      />
     </div>
   );
 };

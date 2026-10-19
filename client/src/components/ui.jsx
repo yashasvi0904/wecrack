@@ -142,3 +142,46 @@ export function Clock({ size = 168 }) {
     </div>
   );
 }
+
+// WeCrack logo mark (gradient triangle)
+export function Logo({ size = 34 }) {
+  const id = useId();
+  return (
+    <svg width={size} height={size} viewBox="0 0 34 34" aria-hidden="true">
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stopColor="#ffb15c" />
+          <stop offset="100%" stopColor="#ff6fae" />
+        </linearGradient>
+      </defs>
+      <path d="M17 3 L31 29 H3 Z" fill={`url(#${id})`} />
+      <path d="M17 13 L24 26 H10 Z" fill="#0a0706" opacity="0.55" />
+    </svg>
+  );
+}
+
+// Text input with a leading icon and optional trailing control (e.g. show/hide password).
+export function Field({ icon: Icon, error, trailing, ...inputProps }) {
+  return (
+    <div className="ux-field-wrap">
+      <div className={`ux-field${error ? " err" : ""}`}>
+        {Icon && <Icon size={19} strokeWidth={1.8} />}
+        <input aria-invalid={error ? "true" : undefined} {...inputProps} />
+        {trailing}
+      </div>
+      {error && <span className="ux-field-err">{error}</span>}
+    </div>
+  );
+}
+
+// Google "G" mark for the sign-in / sign-up buttons
+export function GoogleMark({ size = 20 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z" />
+      <path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.6 10.8l7.9-6.1z" />
+      <path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z" />
+    </svg>
+  );
+}

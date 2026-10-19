@@ -1,215 +1,172 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Eye, EyeOff, Mail, Lock, User } from "lucide-react";
+import { loginWithGoogle } from "../FireBase";
+import AuthLayout from "../../components/AuthLayout";
+import { Field, GoogleMark } from "../../components/ui";
 
 export default function RegisterPage() {
-  const [form, setForm] = useState({ name: '', email: '', password: '' });
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
-  const [successMessage, setSuccessMessage] = useState('');
+  const [message, setMessage] = useState({ type: "", text: "" });
+  const [isLoading, setIsLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const navigate = useNavigate();
 
   const validateForm = () => {
     const newErrors = {};
-    if (form.name.length < 2) newErrors.name = 'Name must be at least 2 characters';
-    if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = 'Invalid email format';
-    if (form.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    if (form.name.trim().length < 2) newErrors.name = "Name must be at least 2 characters";
+    if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = "Invalid email format";
+    if (form.password.length < 6) newErrors.password = "Password must be at least 6 characters";
     return newErrors;
   };
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    if (errors[e.target.name]) setErrors({ ...errors, [e.target.name]: "" });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validateForm();
     setErrors(newErrors);
-    if (Object.keys(newErrors).length === 0) {
-      axios.post(process.env.REACT_APP_REGISTER_USER, {
-        name: form.name,
-        email: form.email,
-        password: form.password
-      }, { withCredentials: true })
-        .then((res) => {
-          setSuccessMessage(res.data.message || 'Registered successfully!');
-          setForm({ name: '', email: '', password: '' });
-          setTimeout(() => navigate('/login'), 1500); // Redirect after delay
-        })
-        .catch((err) => {
-          console.error('Registration error:', err);
-          setSuccessMessage('Registration failed. Please try again.');
-        });
-    };
-  }
-  
+    if (Object.keys(newErrors).length > 0) return;
 
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-    if (errors[e.target.name]) {
-      setErrors({ ...errors, [e.target.name]: '' });
+    setIsLoading(true);
+    setMessage({ type: "", text: "" });
+    try {
+      const res = await axios.post(
+        process.env.REACT_APP_REGISTER_USER,
+        { name: form.name.trim(), email: form.email, password: form.password },
+        { withCredentials: true }
+      );
+      setMessage({ type: "success", text: res.data.message || "Registered successfully!" });
+      setForm({ name: "", email: "", password: "" });
+      setTimeout(() => navigate("/login"), 1500); // Redirect after a short delay
+    } catch (err) {
+      console.error("Registration error:", err);
+      setMessage({
+        type: "error",
+        text: err.response?.data?.message || "Registration failed. Please try again.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // The server creates the account the first time someone signs in with Google
+  const handleGoogleSignUp = async () => {
+    if (googleLoading) return;
+    setGoogleLoading(true);
+    setMessage({ type: "", text: "" });
+    try {
+      const result = await loginWithGoogle();
+      const idToken = await result.user.getIdToken();
+      const res = await fetch(process.env.REACT_APP_GOOGLE_AUTH_URI, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({ idToken }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        navigate("/dashboard");
+      } else {
+        setMessage({ type: "error", text: data.message || "Google sign-up failed. Please try again." });
+      }
+    } catch (error) {
+      console.error("Google Sign-Up Error:", error);
+      if (error.code !== "auth/popup-closed-by-user" && error.code !== "auth/cancelled-popup-request") {
+        setMessage({
+          type: "error",
+          text:
+            error.code === "auth/unauthorized-domain"
+              ? "This domain isn't authorized for Google sign-in yet."
+              : "Google sign-up failed. Please try again.",
+        });
+      }
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      background: '#F2F2F2',
-      fontFamily: 'Arial, sans-serif'
-    }}>
-      <div style={{
-        background: '#EAE4D5',
-        padding: '2rem',
-        borderRadius: '10px',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '400px',
-        border: '2px solid #B6B09F'
-      }}>
-        <h2 style={{
-          textAlign: 'center',
-          marginBottom: '1.5rem',
-          color: '#000000',
-          fontSize: '1.8rem'
-        }}>
-          Create Account
-        </h2>
-        {successMessage && (
-          <div style={{
-            marginBottom: '1rem',
-            padding: '0.75rem',
-            borderRadius: '5px',
-            backgroundColor: '#d4edda',
-            color: '#155724',
-            border: '1px solid #c3e6cb',
-            textAlign: 'center'
-          }}>
-            {successMessage}
-          </div>
-        )}
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              value={form.name}
-              onChange={handleChange}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: `2px solid ${errors.name ? '#dc3545' : '#B6B09F'}`,
-                borderRadius: '5px',
-                fontSize: '1rem',
-                transition: 'border-color 0.3s',
-                outline: 'none',
-                background: '#F2F2F2',
-                color: '#000000'
-              }}
-              onFocus={(e) => e.target.style.borderColor = errors.name ? '#dc3545' : '#000000'}
-              onBlur={(e) => e.target.style.borderColor = errors.name ? '#dc3545' : '#B6B09F'}
-            />
-            {errors.name && <div style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.name}</div>}
-          </div>
-          
-          <div style={{ marginBottom: '1rem' }}>
-            <input
-              type="email"
-              name="email"
-              placeholder="Email Address"
-              value={form.email}
-              onChange={handleChange}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: `2px solid ${errors.email ? '#dc3545' : '#B6B09F'}`,
-                borderRadius: '5px',
-                fontSize: '1rem',
-                transition: 'border-color 0.3s',
-                outline: 'none',
-                background: '#F2F2F2',
-                color: '#000000'
-              }}
-              onFocus={(e) => e.target.style.borderColor = errors.email ? '#dc3545' : '#000000'}
-              onBlur={(e) => e.target.style.borderColor = errors.email ? '#dc3545' : '#B6B09F'}
-            />
-            {errors.email && <div style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.email}</div>}
-          </div>
-          
-          <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
-            <input
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                paddingRight: '2.5rem',
-                border: `2px solid ${errors.password ? '#dc3545' : '#B6B09F'}`,
-                borderRadius: '5px',
-                fontSize: '1rem',
-                transition: 'border-color 0.3s',
-                outline: 'none',
-                background: '#F2F2F2',
-                color: '#000000'
-              }}
-              onFocus={(e) => e.target.style.borderColor = errors.password ? '#dc3545' : '#000000'}
-              onBlur={(e) => e.target.style.borderColor = errors.password ? '#dc3545' : '#B6B09F'}
-            />
+    <AuthLayout
+      title="Create account"
+      subtitle="Start tracking your GATE preparation"
+      footer={
+        <>
+          Already have an account?{" "}
+          <button type="button" className="ux-link" onClick={() => navigate("/login")}>
+            Sign in
+          </button>
+        </>
+      }
+    >
+      <form className="ux-auth-form" onSubmit={handleSubmit} noValidate>
+        <Field
+          icon={User}
+          type="text"
+          name="name"
+          autoComplete="name"
+          placeholder="Full name"
+          aria-label="Full name"
+          value={form.name}
+          error={errors.name}
+          onChange={handleChange}
+        />
+        <Field
+          icon={Mail}
+          type="email"
+          name="email"
+          autoComplete="email"
+          placeholder="Email address"
+          aria-label="Email address"
+          value={form.email}
+          error={errors.email}
+          onChange={handleChange}
+        />
+        <Field
+          icon={Lock}
+          type={showPassword ? "text" : "password"}
+          name="password"
+          autoComplete="new-password"
+          placeholder="Password (6+ characters)"
+          aria-label="Password"
+          value={form.password}
+          error={errors.password}
+          onChange={handleChange}
+          trailing={
             <button
               type="button"
+              className="ux-eye"
               onClick={() => setShowPassword(!showPassword)}
-              style={{
-                position: 'absolute',
-                right: '0.5rem',
-                top: '50%',
-                transform: 'translateY(-50%)',
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '0.8rem',
-                color: '#000000'
-              }}
+              aria-label={showPassword ? "Hide password" : "Show password"}
             >
-              {showPassword ? '👁️' : '👁️‍🗨️'}
+              {showPassword ? <EyeOff size={19} /> : <Eye size={19} />}
             </button>
-            {errors.password && <div style={{ color: '#dc3545', fontSize: '0.8rem', marginTop: '0.25rem' }}>{errors.password}</div>}
+          }
+        />
+
+        {message.text && (
+          <div role="alert" className={`ux-alert ${message.type}`}>
+            {message.text}
           </div>
-          
-          <button
-            type="submit"
-            style={{
-              width: '100%',
-              padding: '0.75rem',
-              background: '#000000',
-              color: '#F2F2F2',
-              border: 'none',
-              borderRadius: '5px',
-              fontSize: '1rem',
-              fontWeight: 'bold',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              outline: 'none'
-            }}
-            onMouseOver={(e) => {
-              e.target.style.background = '#B6B09F';
-              e.target.style.color = '#000000';
-              e.target.style.transform = 'translateY(-2px)';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.background = '#000000';
-              e.target.style.color = '#F2F2F2';
-              e.target.style.transform = 'translateY(0)';
-            }}
-          >
-            Register
-          </button>
-        </form>
-      </div>
-    </div>
+        )}
+
+        <button type="submit" className="ux-btn block" disabled={isLoading} style={{ padding: "14px 22px", fontSize: "16px" }}>
+          {isLoading ? "Creating account..." : "Create account"}
+        </button>
+      </form>
+
+      <div className="ux-divider">or</div>
+
+      <button type="button" className="ux-btn ghost ux-google" onClick={handleGoogleSignUp} disabled={googleLoading} style={{ padding: "13px 22px" }}>
+        <GoogleMark />
+        {googleLoading ? "Signing up..." : "Sign up with Google"}
+      </button>
+    </AuthLayout>
   );
-};
+}

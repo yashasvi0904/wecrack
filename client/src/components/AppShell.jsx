@@ -6,6 +6,7 @@ import {
   CalendarCheck,
   ChartColumn,
   Library,
+  FlaskConical,
   Calendar,
   LogOut,
 } from "lucide-react";
@@ -56,8 +57,9 @@ export default function AppShell({ active, userName: nameProp, tabs = [], bare =
   const nav = [
     { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, onClick: () => go("/dashboard") },
     { key: "habits", label: "Habits", icon: CalendarCheck, onClick: () => go("/habits") },
+    { key: "mock", label: "Mock test", icon: FlaskConical, onClick: () => go("/mock-test") },
     { key: "scores", label: "Scores", icon: ChartColumn, onClick: () => go("/dashboard", "scores") },
-    { key: "library", label: "Library", icon: Library, onClick: () => go("/dashboard", "library") },
+    { key: "library", label: "Library", icon: Library, onClick: () => go("/library") },
   ];
 
   const today = new Date().toLocaleDateString(undefined, { day: "numeric", month: "long" });

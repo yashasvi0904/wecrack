@@ -643,3 +643,643 @@ body:has(.apple-ui) {
   margin: 0;
   background: #0a0706;
 }
+
+/* ---- Auth pages (login / register) -------------------------------------- */
+.ux-auth {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+.ux-auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border-radius: 32px;
+  box-shadow: var(--shadow);
+  padding: 40px 36px 32px;
+}
+.ux-auth-brand {
+  justify-content: center;
+  padding: 0 0 22px;
+}
+.ux-auth-title {
+  margin: 0;
+  text-align: center;
+  font-size: 34px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.ux-auth-sub {
+  margin: 6px 0 26px;
+  text-align: center;
+  color: var(--label-2);
+  font-size: 16px;
+}
+.ux-auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.ux-auth-foot {
+  text-align: center;
+  margin-top: 22px;
+  color: var(--label-2);
+  font-size: 15px;
+}
+.ux-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  font-size: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ux-field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ux-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--fill);
+  border: 1px solid var(--separator);
+  border-radius: 16px;
+  padding: 0 14px;
+  color: var(--label-3);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.ux-field:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--focus);
+  color: var(--accent);
+}
+.ux-field.err {
+  border-color: var(--red);
+}
+.apple-ui .ux-field input,
+.apple-ui .ux-field input:focus {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 15px 0;
+  box-shadow: none !important;
+  color: var(--label);
+}
+.ux-field-err {
+  color: var(--red);
+  font-size: 13px;
+  padding-left: 6px;
+}
+.ux-eye {
+  background: none;
+  border: 0;
+  padding: 4px;
+  color: var(--label-3);
+  cursor: pointer;
+  display: inline-flex;
+}
+.ux-eye:hover {
+  color: var(--label);
+}
+.ux-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0;
+  color: var(--label-3);
+  font-size: 14px;
+}
+.ux-divider::before,
+.ux-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--separator);
+}
+.ux-google {
+  width: 100%;
+  gap: 12px;
+}
+.ux-alert {
+  border-radius: 14px;
+  padding: 10px 14px;
+  font-size: 14px;
+  text-align: center;
+}
+.ux-alert.error {
+  background: var(--red-soft);
+  color: var(--red);
+}
+.ux-alert.success {
+  background: rgba(95, 214, 138, 0.15);
+  color: var(--green);
+}
+
+/* ---- Landing page --------------------------------------------------------- */
+html:has(.apple-ui) {
+  scroll-behavior: smooth;
+}
+.ux-land {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 24px 40px;
+}
+.ux-land-nav {
+  position: sticky;
+  top: 16px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 0 0;
+  padding: 10px 12px 10px 20px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border-radius: 999px;
+  box-shadow: var(--shadow-float), inset 0 0 0 1px var(--separator);
+}
+.ux-land-nav .ux-brand {
+  padding: 0;
+  font-size: 22px;
+}
+.ux-land-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ux-land-links a {
+  color: var(--label-2);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: 999px;
+}
+.ux-land-links a:hover {
+  color: var(--label);
+  background: var(--fill);
+}
+.ux-land-cta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ux-hero {
+  text-align: center;
+  padding: 88px 0 48px;
+}
+.ux-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 26px;
+}
+.ux-hero h1 {
+  font-size: clamp(40px, 6.4vw, 78px);
+  line-height: 1.04;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  margin: 0 auto 22px;
+  max-width: 900px;
+}
+.ux-grad {
+  background: linear-gradient(100deg, #ffb15c, #ff6fae 60%, #8b7cff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.ux-hero p {
+  color: var(--label-2);
+  font-size: clamp(17px, 2vw, 21px);
+  max-width: 700px;
+  margin: 0 auto 32px;
+  line-height: 1.5;
+}
+.ux-hero-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.ux-hero-actions .ux-btn {
+  padding: 15px 30px;
+  font-size: 17px;
+}
+.ux-shot {
+  position: relative;
+  margin: 8px auto 0;
+  max-width: 1120px;
+  padding: 12px;
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border-radius: 36px;
+  box-shadow: var(--shadow), 0 40px 120px rgba(255, 122, 92, 0.18);
+}
+.ux-shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 26px;
+}
+.ux-land-section {
+  padding: 84px 0 0;
+}
+.ux-land-head {
+  text-align: center;
+  margin-bottom: 38px;
+}
+.ux-land-head h2 {
+  font-size: clamp(30px, 4vw, 48px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+.ux-land-head p {
+  color: var(--label-2);
+  font-size: 18px;
+  margin: 0 auto;
+  max-width: 620px;
+}
+.ux-feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 18px;
+}
+.ux-feature {
+  padding: 28px;
+}
+.ux-feature-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 20px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ux-feature h3 {
+  font-size: 22px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.ux-feature p {
+  margin: 0;
+  color: var(--label-2);
+  line-height: 1.55;
+  font-size: 16px;
+}
+.ux-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 18px;
+  counter-reset: step;
+}
+.ux-step {
+  padding: 28px;
+  position: relative;
+}
+.ux-step::before {
+  counter-increment: step;
+  content: counter(step);
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-bottom: 18px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-weight: 600;
+}
+.ux-step h3 {
+  font-size: 21px;
+  font-weight: 500;
+  margin: 0 0 8px;
+}
+.ux-step p {
+  margin: 0;
+  color: var(--label-2);
+  line-height: 1.55;
+}
+.ux-final {
+  margin-top: 84px;
+  text-align: center;
+  padding: 56px 24px;
+  border-radius: 36px;
+  background: var(--panel);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  box-shadow: var(--shadow);
+}
+.ux-final h2 {
+  font-size: clamp(30px, 4vw, 46px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+}
+.ux-final p {
+  color: var(--label-2);
+  font-size: 18px;
+  margin: 0 auto 26px;
+  max-width: 560px;
+}
+.ux-land-foot {
+  margin-top: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--label-2);
+  font-size: 15px;
+}
+.ux-land-foot a {
+  color: var(--label-2);
+}
+@media (max-width: 760px) {
+  .ux-land-links {
+    display: none;
+  }
+  .ux-land {
+    padding: 0 14px 28px;
+  }
+  .ux-hero {
+    padding: 56px 0 32px;
+  }
+  .ux-shot {
+    border-radius: 24px;
+    padding: 8px;
+  }
+  .ux-shot img {
+    border-radius: 17px;
+  }
+}
+
+/* Auth card: never wider than the screen on phones */
+.ux-auth {
+  grid-template-columns: minmax(0, 1fr);
+}
+.ux-auth-card {
+  min-width: 0;
+  margin: 0 auto;
+}
+@media (max-width: 480px) {
+  .ux-auth {
+    padding: 14px;
+  }
+  .ux-auth-card {
+    padding: 28px 20px 24px;
+    border-radius: 26px;
+  }
+  .ux-auth-title {
+    font-size: 30px;
+  }
+}
+
+/* ---- Mock test page --------------------------------------------------------- */
+.ux-stepper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 0 26px;
+  color: var(--label-3);
+  font-size: 15px;
+}
+.ux-stepper .ux-step-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.ux-stepper .ux-step-dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--fill-2);
+  color: var(--label-2);
+}
+.ux-stepper .ux-step-item.active {
+  color: var(--label);
+}
+.ux-stepper .ux-step-item.active .ux-step-dot,
+.ux-stepper .ux-step-item.done .ux-step-dot {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.ux-stepper .ux-step-line {
+  width: 28px;
+  height: 1px;
+  background: var(--separator);
+}
+.ux-paper-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 14px;
+  margin-bottom: 26px;
+}
+.ux-paper {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  width: 100%;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1.5px solid var(--separator);
+  background: var(--card);
+  color: var(--label);
+  cursor: pointer;
+  font-size: 17px;
+  font-weight: 500;
+}
+.ux-paper small {
+  display: block;
+  color: var(--label-2);
+  font-size: 13px;
+  font-weight: 400;
+  margin-top: 2px;
+}
+.ux-paper:hover {
+  background: var(--fill);
+}
+.ux-paper[aria-checked="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 3px var(--focus);
+}
+.ux-paper-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--fill-2);
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.ux-presets {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 8px 0 18px;
+}
+.ux-preset {
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1.5px solid var(--separator);
+  background: var(--fill);
+  color: var(--label);
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.ux-preset[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.ux-timer-big {
+  font-size: clamp(48px, 9vw, 84px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  margin: 6px 0 4px;
+}
+.ux-custom-time {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  color: var(--label-2);
+}
+.ux-custom-time input {
+  width: 120px;
+}
+
+/* Focus layout while a test is running (no sidebar) */
+.ux-test {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 14px;
+  gap: 12px;
+}
+.ux-test-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 10px 14px 10px 20px;
+  background: var(--glass);
+  -webkit-backdrop-filter: var(--blur);
+  backdrop-filter: var(--blur);
+  border-radius: 24px;
+  box-shadow: var(--shadow-float), inset 0 0 0 1px var(--separator);
+}
+.ux-test-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.ux-test-title strong {
+  display: block;
+  font-size: 18px;
+  font-weight: 500;
+}
+.ux-test-title small {
+  color: var(--label-2);
+  font-size: 13px;
+}
+.ux-timer {
+  font-size: 34px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  padding: 4px 18px;
+  border-radius: 16px;
+  background: var(--fill);
+}
+.ux-timer.warn {
+  color: var(--orange);
+}
+.ux-timer.danger {
+  color: var(--red);
+  background: var(--red-soft);
+}
+.ux-test-frame {
+  flex: 1;
+  min-height: 0;
+  background: var(--panel);
+  border-radius: 24px;
+  padding: 8px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+}
+.ux-test-frame iframe {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  border-radius: 18px;
+  background: #fff;
+}
+.ux-paused {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--label-2);
+  font-size: 18px;
+  padding: 24px;
+}
+.ux-frame-note {
+  font-size: 13px;
+  color: var(--label-2);
+  text-align: center;
+  padding: 8px 0 2px;
+}
+.ux-frame-note a {
+  color: var(--accent);
+}
+.ux-result {
+  max-width: 560px;
+  margin: 0 auto;
+  text-align: center;
+}
+.ux-result .ux-big {
+  justify-content: center;
+}
+@media (max-width: 640px) {
+  .ux-timer {
+    font-size: 26px;
+  }
+  .ux-test-bar {
+    padding: 10px 12px;
+  }
+}
